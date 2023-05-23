@@ -1,12 +1,12 @@
 ﻿#include<iostream>
 #include"meta.hpp"
-int main(void){
+meta::Enable<meta::True,int> main(void){
     typename meta::Invoke<
         typename meta::Invoke<
             meta::Template<meta::IF>,
             meta::True,
             meta::Template<meta::IF>,
-            meta::Template<meta::DoNothing>
+            meta::Template<meta::ReturnVoid>
         >::Type,
         meta::True,
         int,

@@ -57,17 +57,36 @@ using False=Auto<false>;
 // [out] ::Type [info] type of static if result
 template<typename _Condition,typename _Then,typename _Else>
 struct IF;
-// class template of do nothing
+// class template of do nothing and return void
 // [info] class template
-// [in] _Types [info] type... 
+// [in] _Types [info] type...
 // [out] ::Type [info] type of void
 template<typename..._Types>
-struct DoNothing;
+struct ReturnVoid;
 // class template of no return
 // [info] class template
-// [in] _Types [info] type... 
+// [in] _Types [info] type...
 template<typename..._Types>
 struct NoReturn;
+// class template of do nothing and return _Type
+// [info] class template
+// [in] _Type [info] type
+// [out] ::Type [info] type of _Type
+template<typename _Type>
+struct ReturnType;
+// static enable if
+// [info] alias template
+// [in] _Condition [info] type of Constant<bool,...> Instance
+// [in] _Return [info] type default is void
+// [out] self instance [info] type of _Condition?_Return:Static Error
+template<typename _Condition,typename _Return=void>
+using Enable=typename Invoke<
+    typename IF<_Condition,
+        /*?*/Template<ReturnType>,
+        /*:*/Template<NoReturn>
+    >::Type,
+    _Return
+>::Type;
 
 // ===========================================================================
 // IMPL
@@ -94,9 +113,13 @@ struct IF<False,_Then,_Else>{
     using Type=_Else;
 };
 template<typename..._Types>
-struct DoNothing{
+struct ReturnVoid{
     using Type=void;
 };
 template<typename..._Types>
 struct NoReturn{};
+template<typename _Type>
+struct ReturnType{
+    using Type=_Type;
+};
 } // namespace meta
