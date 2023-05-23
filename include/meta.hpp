@@ -63,6 +63,11 @@ struct IF;
 // [out] ::Type [info] type of void
 template<typename..._Types>
 struct DoNothing;
+// class template of no return
+// [info] class template
+// [in] _Types [info] type... 
+template<typename..._Types>
+struct NoReturn;
 
 // ===========================================================================
 // IMPL
@@ -92,4 +97,6 @@ template<typename..._Types>
 struct DoNothing{
     using Type=void;
 };
+template<typename..._Types>
+struct NoReturn{};
 } // namespace meta
