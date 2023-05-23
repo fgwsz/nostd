@@ -57,35 +57,29 @@ using False=Auto<false>;
 // [out] ::Type [info] type of static if result
 template<typename _Condition,typename _Then,typename _Else>
 struct IF;
-// class template of do nothing and return void
-// [info] class template
-// [in] _Types [info] type...
-// [out] ::Type [info] type of void
-template<typename..._Types>
-struct ReturnVoid;
 // class template of no return
 // [info] class template
 // [in] _Types [info] type...
 template<typename..._Types>
 struct NoReturn;
-// class template of do nothing and return _Type
+// class template of do nothing and return _ReturnType
 // [info] class template
-// [in] _Type [info] type
-// [out] ::Type [info] type of _Type
-template<typename _Type>
-struct ReturnType;
+// [in] _ReturnType [info] type
+// [out] ::Type [info] type of _ReturnType
+template<typename _ReturnType,typename..._Types>
+struct Return;
 // static enable if
 // [info] alias template
 // [in] _Condition [info] type of Constant<bool,...> Instance
-// [in] _Return [info] type default is void
-// [out] self instance [info] type of _Condition?_Return:Static Error
-template<typename _Condition,typename _Return=void>
+// [in] _ReturnType [info] type default is void
+// [out] self instance [info] type of _Condition?_ReturnType:Static Error
+template<typename _Condition,typename _ReturnType=void>
 using Enable=typename Invoke<
     typename IF<_Condition,
-        /*?*/Template<ReturnType>,
+        /*?*/Template<Return>,
         /*:*/Template<NoReturn>
     >::Type,
-    _Return
+    _ReturnType
 >::Type;
 
 // ===========================================================================
@@ -113,13 +107,9 @@ struct IF<False,_Then,_Else>{
     using Type=_Else;
 };
 template<typename..._Types>
-struct ReturnVoid{
-    using Type=void;
-};
-template<typename..._Types>
 struct NoReturn{};
-template<typename _Type>
-struct ReturnType{
-    using Type=_Type;
+template<typename _ReturnType,typename..._Types>
+struct Return{
+    using Type=_ReturnType;
 };
 } // namespace meta

@@ -6,7 +6,7 @@ meta::Enable<meta::True,int> main(void){
             meta::Template<meta::IF>,
             meta::True,
             meta::Template<meta::IF>,
-            meta::Template<meta::ReturnVoid>
+            meta::Template<meta::Return>
         >::Type,
         meta::True,
         int,
