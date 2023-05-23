@@ -82,6 +82,55 @@ using Enable=typename Invoke<
     _ReturnType
 >::Type;
 
+#define __META_OPERATOR_BINARY(__OPERATOR__,__OPERATOR_NAME__) \
+template<typename _Constant_1,typename _Constant_2> \
+struct Operator_##__OPERATOR_NAME__{ \
+private: \
+    static constexpr decltype(auto) value= \
+        (_Constant_1::value) __OPERATOR__ (_Constant_2::value); \
+public: \
+    using Type=Auto<value>; \
+};
+
+#define __META_OPERATOR_UNARY(__OPERATOR__,__OPERATOR_NAME__) \
+template<typename _Constant> \
+struct Operator_##__OPERATOR_NAME__{ \
+private: \
+    static constexpr decltype(auto) value= \
+        __OPERATOR__ (_Constant::value); \
+public: \
+    using Type=Auto<value>; \
+};
+
+__META_OPERATOR_BINARY(+,Plus      )
+__META_OPERATOR_BINARY(-,Minus     )
+__META_OPERATOR_BINARY(*,Multiplies)
+__META_OPERATOR_BINARY(/,Divides   )
+__META_OPERATOR_BINARY(%,Modulus   )
+__META_OPERATOR_UNARY (-,Negate    )
+
+__META_OPERATOR_BINARY(==,EqualTo     )
+__META_OPERATOR_BINARY(!=,NotEqualTo  )
+__META_OPERATOR_BINARY(> ,Greater     )
+__META_OPERATOR_BINARY(< ,Less        )
+__META_OPERATOR_BINARY(>=,GreaterEqual)
+__META_OPERATOR_BINARY(<=,LessEqual   )
+
+__META_OPERATOR_BINARY(&&,LogicalAnd)
+__META_OPERATOR_BINARY(||,LogicalOr )
+__META_OPERATOR_UNARY (! ,LogicalNot)
+
+__META_OPERATOR_BINARY(&,BitAnd)
+__META_OPERATOR_BINARY(|,BitOr )
+__META_OPERATOR_BINARY(^,BitXor)
+__META_OPERATOR_UNARY (!,BitNot)
+
+__META_OPERATOR_BINARY(<<,LeftShift )
+__META_OPERATOR_BINARY(>>,RightShift)
+
+#undef __META_OPERATOR_UNARY
+#undef __META_OPERATOR_BINARY
+
 // ===========================================================================
 // IMPL
 // ===========================================================================
