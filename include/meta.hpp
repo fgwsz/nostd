@@ -36,14 +36,14 @@ using Invoke=_TemplateInstance::template Self<_Types...>;
 template<auto _value>
 using Auto=Constant<decltype(_value),_value>;
 // true type
-// [info] type
+// [info] type of Constant<bool,true>
 // [out] ::value [info] static constance true
 // [out] ::ValueType [info] type of ::value
 // [out] ::Type [info] type of self instance
 // [out] self instance [info] type of Constant<> Instance
 using True=Auto<true>;
 // false type
-// [info] type
+// [info] type of Constant<bool,false>
 // [out] ::value [info] static constance false
 // [out] ::ValueType [info] type of ::value
 // [out] ::Type [info] type of self instance
@@ -51,13 +51,13 @@ using True=Auto<true>;
 using False=Auto<false>;
 // static if
 // [info] class template
-// [in] _Condition [info] type of Constance<bool,...> Instance
+// [in] _Condition [info] type of Constant<bool,...> Instance
 // [in] _Then [info] type
 // [in] _Else [info] type
 // [out] ::Type [info] type of static if result
 template<typename _Condition,typename _Then,typename _Else>
 struct IF;
-// class template of and do nothing
+// class template of do nothing
 // [info] class template
 // [in] _Types [info] type... 
 // [out] ::Type [info] type of void
