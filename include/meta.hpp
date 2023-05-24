@@ -131,6 +131,44 @@ __META_OPERATOR_BINARY(>>,RightShift)
 #undef __META_OPERATOR_UNARY
 #undef __META_OPERATOR_BINARY
 
+// static constance sequence to type
+// [info] class template
+// [in] _Type [info] type
+// [in] _values [info] static constance...
+// [out] ::value [info] static constance array assign by _values
+// [out] ::length [info] static constance element number(>0) of ::value
+// [out] ::ValueType [info] type of ::value element
+// [out] ::Type [info] type of self instance
+// [out] self instance [info] type
+template<typename _Type,_Type..._values>
+struct Sequence;
+// type trait of is same
+// [info] class template
+// [in] _Type_1 [info] type
+// [in] _Type_2 [info] type
+// [out] ::Type [info] type of _Type_1==_Type_2?True:False
+template<typename _Type_1,typename _Type_2>
+struct IsSame;
+// concat static constance sequences
+// [info] class template
+// [in] _Sequence_1 [info] type of Sequence<> Instance
+// [in] _Sequence_2 [info] type of Sequence<> Instance
+// [in] _Sequences [info] types... of Sequence<> Instance
+// [out] ::Type [info] type of Sequence<> Instance
+template<typename _Sequence_1,typename _Sequence_2,typename..._Sequences>
+struct Sequence_Concat;
+// size type
+// [info] type alias of unsigned long long
+// [out] self instance [info] type
+using SizeType=unsigned long long;
+// create a static constance sequences of [_BeginIndex,_EndIndex)
+// [info] class template
+// [in] _BeginIndex [info] type of Constant<SizeType,...> Instance
+// [in] _EndIndex [info] type of Constant<SizeType,...> Instance
+// [out] ::Type [info] type of Sequence<SizeType,...> Instance
+template<typename _BeginIndex,typename _EndIndex>
+struct Sequence_MakeIndexs;
+
 // ===========================================================================
 // IMPL
 // ===========================================================================
@@ -160,5 +198,78 @@ struct NoReturn{};
 template<typename _ReturnType,typename..._Types>
 struct Return{
     using Type=_ReturnType;
+};
+template<typename _Type,_Type..._values>
+struct Sequence{
+    static constexpr auto length=sizeof...(_values);
+    static constexpr _Type value[length]={_values...};
+    using ValueType=_Type;
+    using Type=Sequence;
+};
+template<typename _Type_1,typename _Type_2>
+struct IsSame{
+    using Type=False;
+};
+template<typename _Type>
+struct IsSame<_Type,_Type>{
+    using Type=True;
+};
+template<typename _Sequence_1,typename _Sequence_2>
+struct __Sequence_Concat_Helper;
+template<typename _Type,_Type..._values_1,_Type..._values_2>
+struct __Sequence_Concat_Helper<
+    Sequence<_Type,_values_1...>,
+    Sequence<_Type,_values_2...>
+>{
+    using Type=Sequence<_Type,_values_1...,_values_2...>;
+};
+template<typename _Sequence_1,typename _Sequence_2,typename..._Sequences>
+struct Sequence_Concat{
+    using Type=typename __Sequence_Concat_Helper<
+        _Sequence_1,
+        typename Invoke<
+            typename IF<Auto<sizeof...(_Sequences)!=0>,
+                Template<Sequence_Concat>,
+                Template<Return>
+            >::Type,
+            _Sequence_2,
+            _Sequences...
+        >::Type
+    >::Type;
+};
+template<typename _BeginIndex,typename _EndIndex>
+struct Sequence_MakeIndexs{
+private:
+    static_assert(_BeginIndex::value<_EndIndex::value,
+        "_BeginIndex must be less than _EndIndex");
+    using LoopEnd=Auto<_BeginIndex::value+1==_EndIndex::value>;
+    using NextBeginIndex=Constant<SizeType,_BeginIndex::value+1>;
+    /*
+    if(LoopEnd) { 
+        return Sequence<SizeType,_BeginIndex>; 
+    }
+    else { 
+        return Sequenec_Concat(
+            Sequence<SizeType,_BeginIndex>,
+            Sequence_MakeIndexs<_BeginIndex+1,_EndIndex>
+        );
+    }
+    */
+public:
+    using Type=typename Invoke<
+        typename IF<LoopEnd,
+            Template<Return>,
+            Template<Sequence_Concat>
+        >::Type,
+        Sequence<SizeType,_BeginIndex::value>,
+        typename Invoke<
+            typename IF<LoopEnd,
+                Template<Return>,
+                Template<Sequence_MakeIndexs>
+            >::Type,
+            NextBeginIndex,
+            _EndIndex
+        >::Type
+    >::Type;
 };
 } // namespace meta
