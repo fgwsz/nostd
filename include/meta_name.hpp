@@ -6,7 +6,6 @@
 #if defined(__GUNC__)
     #define META_FUNCTION_NAME __PRETTY_FUNCTION__
 #elif defined(__clang__)
-    ::std::cout<<"clang"<<::std::endl;
     #define META_FUNCTION_NAME __PRETTY_FUNCTION__
 #elif defined(_MSC_VER)
     #define META_FUNCTION_NAME __FUNCSIG__
@@ -18,30 +17,31 @@
 
 namespace meta{
 // meta::compiler_name
+static constexpr auto&& compiler_name=
 #if defined(__GUNC__)
-    static constexpr auto&& compiler_name="GUNC";
+    "GUNC"
 #elif defined(__clang__)
-    static constexpr auto&& compiler_name="clang";
+    "clang"
 #elif defined(_MSC_VER)
-    static constexpr auto&& compiler_name="MSVC";
+    "MSVC"
 #elif defined(__MINGW32__) || defined(__MINGW64__)
-    static constexpr auto&& compiler_name="MINGW";
+    "MINGW"
 #else
-    static constexpr auto&& compiler_name="others";
+    "others"
 #endif
+;
 
 template<typename _Type>
-struct TypeInfo ;
-template<typename _Type>
-struct TypeInfo {
+struct BaseTypeInfo{
 private:
     ::std::string mutable name_;
-    constexpr void __name_detail()const noexcept{
+    constexpr void __name_detail()const{
     #if defined(_MSC_VER)
         ::std::string type_name{__FUNCSIG__};
         auto begin=type_name.find_first_of('<')+1;
         auto end=type_name.find_last_of('>');
-    #elif defined(__GUNC__) || defined(__clang__) || defined(__MINGW32__) || defined(__MINGW64__)
+    #elif defined(__GUNC__) || defined(__clang__) || \
+          defined(__MINGW32__) || defined(__MINGW64__)
         ::std::string type_name{__PRETTY_FUNCTION__};
         auto begin=type_name.find_first_of('=')+1;
         auto end=type_name.find_last_of(']');
@@ -62,42 +62,50 @@ private:
         }
         this->name_=type_name.substr(begin,end-begin);
     }
-    constexpr decltype(auto) __name()const noexcept{
+    constexpr auto __name()const{
         return this->name_;
     }
 public:
-    constexpr TypeInfo()noexcept{
+    constexpr BaseTypeInfo(){
         this->__name_detail();
     }
-    static constexpr decltype(auto) name() noexcept{
-        return TypeInfo<_Type>().__name();
+    static constexpr auto name(){
+        return BaseTypeInfo<_Type>().__name();
     }
 };
-#define __META_TYPE_INFO_BASE_IMPL(__EXT__) \
+
+template<typename _Type>
+struct TypeInfo{
+    static constexpr auto name(){
+        return BaseTypeInfo<_Type>::name();
+    }
+};
+
+#define __META_TYPE_INFO_BASE(__EXT__) \
 template<typename _Type> \
-struct TypeInfo<_Type __EXT__> { \
-    static auto name() { \
+struct TypeInfo<_Type __EXT__>{ \
+    static constexpr auto name(){ \
         return ::std::string("{") \
             .append(TypeInfo<_Type>::name()) \
             .append("}"#__EXT__); \
     } \
-}; \
-//
-#define __META_TYPE_INFO_ARRAY_IMPL(__EXT__) \
+};
+
+#define __META_TYPE_INFO_ARRAY(__EXT__) \
 template<typename _Type,::std::size_t _N> \
-struct TypeInfo<_Type __EXT__[_N]> { \
-    static auto name() { \
-        return ::std::string{ "{" } \
+struct TypeInfo<_Type __EXT__[_N]>{ \
+    static constexpr auto name(){ \
+        return ::std::string{"{"} \
             .append(TypeInfo<_Type>::name()) \
             .append("}"#__EXT__"[") \
             .append(::std::to_string(_N)) \
             .append("]"); \
     } \
-}; \
-//
+};
+
 template<typename _ClassType,typename _Type>
-struct TypeInfo<_Type _ClassType::*> {
-    static auto name() { 
+struct TypeInfo<_Type _ClassType::*>{
+    static constexpr auto name(){
         return ::std::string("{")
             .append(TypeInfo<_Type>::name())
             .append("}{")
@@ -105,14 +113,15 @@ struct TypeInfo<_Type _ClassType::*> {
             .append("}::*");
     }
 };
-#define __META_TYPE_INFO_FUNCTION_IMPL(__EXT__) \
+
+#define __META_TYPE_INFO_FUNCTION(__EXT__) \
 template<typename _RetType,typename..._Types> \
-struct TypeInfo<_RetType(_Types...)__EXT__> { \
-    static auto name() { \
-        if constexpr (sizeof...(_Types) != 0) { \
-            ::std::string arg_list = ( \
+struct TypeInfo<_RetType(_Types...)__EXT__>{ \
+    static constexpr auto name(){ \
+        if constexpr(sizeof...(_Types)!=0){ \
+            ::std::string arg_list=( \
                 TypeInfo<_Types>::name() \
-                .append(",") + ... \
+                .append(",")+... \
             ); \
             arg_list.pop_back(); \
             return ::std::string("{") \
@@ -127,14 +136,14 @@ struct TypeInfo<_RetType(_Types...)__EXT__> { \
                 .append("}(void)"#__EXT__); \
         } \
     } \
-}; \
+};\
 template<typename _RetType,typename..._Types> \
-struct TypeInfo<_RetType(_Types...,...)__EXT__> { \
-    static auto name() { \
-        if constexpr (sizeof...(_Types) != 0) { \
-            ::std::string arg_list = ( \
+struct TypeInfo<_RetType(_Types...,...)__EXT__>{ \
+    static constexpr auto name(){ \
+        if constexpr (sizeof...(_Types)!=0){ \
+            ::std::string arg_list=( \
                 TypeInfo<_Types>::name() \
-                .append(",") + ... \
+                .append(",")+...\
             ); \
             return ::std::string("{") \
                 .append(TypeInfo<_RetType>::name()) \
@@ -148,59 +157,64 @@ struct TypeInfo<_RetType(_Types...,...)__EXT__> { \
                 .append("}(...)"#__EXT__); \
         } \
     } \
-}; \
-//
-__META_TYPE_INFO_BASE_IMPL(const)
-__META_TYPE_INFO_BASE_IMPL(volatile)
-__META_TYPE_INFO_BASE_IMPL(const volatile)
-__META_TYPE_INFO_BASE_IMPL(*)
-__META_TYPE_INFO_BASE_IMPL(&)
-__META_TYPE_INFO_BASE_IMPL(&&)
-__META_TYPE_INFO_BASE_IMPL([])
-__META_TYPE_INFO_BASE_IMPL(const[])
-__META_TYPE_INFO_BASE_IMPL(volatile[])
-__META_TYPE_INFO_BASE_IMPL(const volatile[])
-#undef __META_TYPE_INFO_BASE_IMPL
+};
+
+__META_TYPE_INFO_BASE(const)
+__META_TYPE_INFO_BASE(volatile)
+__META_TYPE_INFO_BASE(const volatile)
+__META_TYPE_INFO_BASE(*)
+__META_TYPE_INFO_BASE(&)
+__META_TYPE_INFO_BASE(&&)
+__META_TYPE_INFO_BASE([])
+__META_TYPE_INFO_BASE(const[])
+__META_TYPE_INFO_BASE(volatile[])
+__META_TYPE_INFO_BASE(const volatile[])
+#undef __META_TYPE_INFO_BASE
 // C Style Array[_N]
-__META_TYPE_INFO_ARRAY_IMPL() 
-__META_TYPE_INFO_ARRAY_IMPL(const) 
-__META_TYPE_INFO_ARRAY_IMPL(volatile) 
-__META_TYPE_INFO_ARRAY_IMPL(const volatile) 
-#undef __META_TYPE_INFO_ARRAY_IMPL
+__META_TYPE_INFO_ARRAY() 
+__META_TYPE_INFO_ARRAY(const) 
+__META_TYPE_INFO_ARRAY(volatile) 
+__META_TYPE_INFO_ARRAY(const volatile) 
+#undef __META_TYPE_INFO_ARRAY
 //
-__META_TYPE_INFO_FUNCTION_IMPL()
-__META_TYPE_INFO_FUNCTION_IMPL(const)
-__META_TYPE_INFO_FUNCTION_IMPL(volatile)
-__META_TYPE_INFO_FUNCTION_IMPL(const volatile)
-__META_TYPE_INFO_FUNCTION_IMPL(&)
-__META_TYPE_INFO_FUNCTION_IMPL(const&)
-__META_TYPE_INFO_FUNCTION_IMPL(volatile&)
-__META_TYPE_INFO_FUNCTION_IMPL(const volatile&)
-__META_TYPE_INFO_FUNCTION_IMPL(&&)
-__META_TYPE_INFO_FUNCTION_IMPL(const&&)
-__META_TYPE_INFO_FUNCTION_IMPL(volatile&&)
-__META_TYPE_INFO_FUNCTION_IMPL(const volatile&&)
+__META_TYPE_INFO_FUNCTION()
+__META_TYPE_INFO_FUNCTION(const)
+__META_TYPE_INFO_FUNCTION(volatile)
+__META_TYPE_INFO_FUNCTION(const volatile)
+__META_TYPE_INFO_FUNCTION(&)
+__META_TYPE_INFO_FUNCTION(const&)
+__META_TYPE_INFO_FUNCTION(volatile&)
+__META_TYPE_INFO_FUNCTION(const volatile&)
+__META_TYPE_INFO_FUNCTION(&&)
+__META_TYPE_INFO_FUNCTION(const&&)
+__META_TYPE_INFO_FUNCTION(volatile&&)
+__META_TYPE_INFO_FUNCTION(const volatile&&)
 // noexcept
-__META_TYPE_INFO_FUNCTION_IMPL(noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(const noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(volatile noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(const volatile noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(const&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(volatile&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(const volatile&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(&&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(const&&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(volatile&&noexcept)
-__META_TYPE_INFO_FUNCTION_IMPL(const volatile&&noexcept)
-#undef __META_TYPE_INFO_FUNCTION_IMPL
+__META_TYPE_INFO_FUNCTION(noexcept)
+__META_TYPE_INFO_FUNCTION(const noexcept)
+__META_TYPE_INFO_FUNCTION(volatile noexcept)
+__META_TYPE_INFO_FUNCTION(const volatile noexcept)
+__META_TYPE_INFO_FUNCTION(&noexcept)
+__META_TYPE_INFO_FUNCTION(const&noexcept)
+__META_TYPE_INFO_FUNCTION(volatile&noexcept)
+__META_TYPE_INFO_FUNCTION(const volatile&noexcept)
+__META_TYPE_INFO_FUNCTION(&&noexcept)
+__META_TYPE_INFO_FUNCTION(const&&noexcept)
+__META_TYPE_INFO_FUNCTION(volatile&&noexcept)
+__META_TYPE_INFO_FUNCTION(const volatile&&noexcept)
+#undef __META_TYPE_INFO_FUNCTION
 // meta::type_name()
 template<typename _Type>
-constexpr ::std::string type_name()noexcept{
+constexpr auto type_name(){
     return TypeInfo<_Type>::name();
 }
+template<typename _Type>
+constexpr auto base_type_name(){
+    return BaseTypeInfo<_Type>::name();
+}
 void test_compiler_name(){
-    ::std::cout<<"meta::compiler_name -> "<<::meta::compiler_name<<::std::endl;
+    ::std::cout<<"meta::compiler_name -> "
+        <<::meta::compiler_name<<::std::endl;
 }
 template<typename _Type>
 void test_function_name(){
@@ -212,7 +226,11 @@ void test_function_name(){
 }
 template<typename _Type>
 void test_type_name(){
-    ::std::cout<<"CXX_STD typeid().name() -> "<<typeid(_Type).name()<<::std::endl;
-    ::std::cout<<"meta::type_name() -> "<<::meta::type_name<_Type>()<<::std::endl;
+    ::std::cout<<"CXX_STD typeid().name() -> "
+        <<typeid(_Type).name()<<::std::endl;
+    ::std::cout<<"meta::type_name_base() -> "
+        <<::meta::base_type_name<_Type>()<<::std::endl;
+    ::std::cout<<"meta::type_name() -> "
+        <<::meta::type_name<_Type>()<<::std::endl;
 }
 } // namespace meta
