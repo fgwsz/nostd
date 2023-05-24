@@ -31,10 +31,12 @@ namespace meta{
 #endif
 
 template<typename _Type>
-struct TypeInfo final{
+struct TypeInfo ;
+template<typename _Type>
+struct TypeInfo {
 private:
     ::std::string mutable name_;
-    constexpr void name_detail()const noexcept{
+    constexpr void __name_detail()const noexcept{
     #if defined(_MSC_VER)
         ::std::string type_name{__FUNCSIG__};
         auto begin=type_name.find_first_of('<')+1;
@@ -60,18 +62,142 @@ private:
         }
         this->name_=type_name.substr(begin,end-begin);
     }
-public:
-    constexpr TypeInfo()noexcept{
-        this->name_detail();
-    }
-    constexpr decltype(auto) name()const noexcept{
+    constexpr decltype(auto) __name()const noexcept{
         return this->name_;
     }
+public:
+    constexpr TypeInfo()noexcept{
+        this->__name_detail();
+    }
+    static constexpr decltype(auto) name() noexcept{
+        return TypeInfo<_Type>().__name();
+    }
 };
+#define __META_TYPE_INFO_BASE_IMPL(__EXT__) \
+template<typename _Type> \
+struct TypeInfo<_Type __EXT__> { \
+    static auto name() { \
+        return ::std::string("{") \
+            .append(TypeInfo<_Type>::name()) \
+            .append("}"#__EXT__); \
+    } \
+}; \
+//
+#define __META_TYPE_INFO_ARRAY_IMPL(__EXT__) \
+template<typename _Type,::std::size_t _N> \
+struct TypeInfo<_Type __EXT__[_N]> { \
+    static auto name() { \
+        return ::std::string{ "{" } \
+            .append(TypeInfo<_Type>::name()) \
+            .append("}"#__EXT__"[") \
+            .append(::std::to_string(_N)) \
+            .append("]"); \
+    } \
+}; \
+//
+template<typename _ClassType,typename _Type>
+struct TypeInfo<_Type _ClassType::*> {
+    static auto name() { 
+        return ::std::string("{")
+            .append(TypeInfo<_Type>::name())
+            .append("}{")
+            .append(TypeInfo<_ClassType>::name())
+            .append("}::*");
+    }
+};
+#define __META_TYPE_INFO_FUNCTION_IMPL(__EXT__) \
+template<typename _RetType,typename..._Types> \
+struct TypeInfo<_RetType(_Types...)__EXT__> { \
+    static auto name() { \
+        if constexpr (sizeof...(_Types) != 0) { \
+            ::std::string arg_list = ( \
+                TypeInfo<_Types>::name() \
+                .append(",") + ... \
+            ); \
+            arg_list.pop_back(); \
+            return ::std::string("{") \
+                .append(TypeInfo<_RetType>::name()) \
+                .append("}(") \
+                .append(arg_list) \
+                .append(")"#__EXT__); \
+        } \
+        else { \
+            return ::std::string("{") \
+                .append(TypeInfo<_RetType>::name()) \
+                .append("}(void)"#__EXT__); \
+        } \
+    } \
+}; \
+template<typename _RetType,typename..._Types> \
+struct TypeInfo<_RetType(_Types...,...)__EXT__> { \
+    static auto name() { \
+        if constexpr (sizeof...(_Types) != 0) { \
+            ::std::string arg_list = ( \
+                TypeInfo<_Types>::name() \
+                .append(",") + ... \
+            ); \
+            return ::std::string("{") \
+                .append(TypeInfo<_RetType>::name()) \
+                .append("}(") \
+                .append(arg_list) \
+                .append("...)"#__EXT__); \
+        } \
+        else { \
+            return ::std::string("{") \
+                .append(TypeInfo<_RetType>::name()) \
+                .append("}(...)"#__EXT__); \
+        } \
+    } \
+}; \
+//
+__META_TYPE_INFO_BASE_IMPL(const)
+__META_TYPE_INFO_BASE_IMPL(volatile)
+__META_TYPE_INFO_BASE_IMPL(const volatile)
+__META_TYPE_INFO_BASE_IMPL(*)
+__META_TYPE_INFO_BASE_IMPL(&)
+__META_TYPE_INFO_BASE_IMPL(&&)
+__META_TYPE_INFO_BASE_IMPL([])
+__META_TYPE_INFO_BASE_IMPL(const[])
+__META_TYPE_INFO_BASE_IMPL(volatile[])
+__META_TYPE_INFO_BASE_IMPL(const volatile[])
+#undef __META_TYPE_INFO_BASE_IMPL
+// C Style Array[_N]
+__META_TYPE_INFO_ARRAY_IMPL() 
+__META_TYPE_INFO_ARRAY_IMPL(const) 
+__META_TYPE_INFO_ARRAY_IMPL(volatile) 
+__META_TYPE_INFO_ARRAY_IMPL(const volatile) 
+#undef __META_TYPE_INFO_ARRAY_IMPL
+//
+__META_TYPE_INFO_FUNCTION_IMPL()
+__META_TYPE_INFO_FUNCTION_IMPL(const)
+__META_TYPE_INFO_FUNCTION_IMPL(volatile)
+__META_TYPE_INFO_FUNCTION_IMPL(const volatile)
+__META_TYPE_INFO_FUNCTION_IMPL(&)
+__META_TYPE_INFO_FUNCTION_IMPL(const&)
+__META_TYPE_INFO_FUNCTION_IMPL(volatile&)
+__META_TYPE_INFO_FUNCTION_IMPL(const volatile&)
+__META_TYPE_INFO_FUNCTION_IMPL(&&)
+__META_TYPE_INFO_FUNCTION_IMPL(const&&)
+__META_TYPE_INFO_FUNCTION_IMPL(volatile&&)
+__META_TYPE_INFO_FUNCTION_IMPL(const volatile&&)
+// noexcept
+__META_TYPE_INFO_FUNCTION_IMPL(noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(const noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(volatile noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(const volatile noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(const&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(volatile&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(const volatile&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(&&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(const&&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(volatile&&noexcept)
+__META_TYPE_INFO_FUNCTION_IMPL(const volatile&&noexcept)
+#undef __META_TYPE_INFO_FUNCTION_IMPL
 // meta::type_name()
 template<typename _Type>
 constexpr ::std::string type_name()noexcept{
-    return TypeInfo<_Type>().name();
+    return TypeInfo<_Type>::name();
 }
 void test_compiler_name(){
     ::std::cout<<"meta::compiler_name -> "<<::meta::compiler_name<<::std::endl;
