@@ -1,5 +1,6 @@
 ﻿#include<iostream>
 #include"meta.hpp"
+#include"meta_name.hpp"
 meta::Enable<meta::True,int> main(void){
     typename meta::Invoke<
         typename meta::Invoke<
@@ -12,9 +13,12 @@ meta::Enable<meta::True,int> main(void){
         int,
         double
     >::Type a;
-    ::std::cout<<"typeof(a)="<<typeid(a).name()<<::std::endl;
+    ::std::cout<<"typeof(a)="<<meta::type_name<decltype(a)>()<<::std::endl;
     meta::Operator_LeftShift<meta::Auto<(int)true>,meta::Auto<4>>::Type b;
-    ::std::cout<<"typeof(b)="<<typeid(b).name()<<::std::endl;
+    ::std::cout<<"typeof(b)="<<meta::type_name<decltype(b)>()<<::std::endl;
+    meta::test_compiler_name();
+    meta::test_function_name<::std::string>();
+    meta::test_type_name<::std::string const volatile* const volatile(*const volatile&&)[2][1]>();
     ::std::system("pause");
     return 0;
 }
