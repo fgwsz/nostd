@@ -1,24 +1,9 @@
 ﻿#include<iostream>
 #include"meta.hpp"
 #include"meta_name.hpp"
+#include"meta_string.hpp"
 #include<type_traits>
 #include<cassert>
-template<meta::SizeType _length>
-struct CStr{
-    char value[_length]{};
-    constexpr CStr(char const(&c_str)[_length]){
-        for(meta::SizeType index=0;index<_length;++index){
-            this->value[index]=c_str[index];
-        }
-    }
-};
-template<meta::SizeType _length,CStr<_length> _value>
-struct String{
-    static constexpr auto value=_value;
-    static constexpr auto length=_length;
-};
-
-
 meta::Enable<meta::True,int> main(void){
     ::std::cout<<META_FUNCTION_NAME<<::std::endl;
     // test_static_string();
@@ -54,7 +39,8 @@ meta::Enable<meta::True,int> main(void){
         >::Type
     >()<<::std::endl;
     ::std::cout<<meta::type_name<
-        String<sizeof(META_FUNCTION_NAME),META_FUNCTION_NAME>
+        META_STRING(META_FUNCTION_NAME)
     >()<<::std::endl;
+    ::std::cout<<META_STRING("hello world!")::c_str().value<<::std::endl;
     return 0;
 }
