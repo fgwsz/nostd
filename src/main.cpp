@@ -2,11 +2,8 @@
 #include"meta.hpp"
 #include"meta_name.hpp"
 #include"meta_string.hpp"
-#include<type_traits>
-#include<cassert>
 meta::Enable<meta::True,int> main(void){
     ::std::cout<<META_FUNCTION_NAME<<::std::endl;
-    // test_static_string();
     typename meta::Invoke<
         typename meta::Invoke<
             meta::Template<meta::IF>,
