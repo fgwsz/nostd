@@ -41,6 +41,5 @@ meta::Enable<meta::True,int> main(void){
     ::std::cout<<meta::type_name<
         META_STRING(META_FUNCTION_NAME)
     >()<<::std::endl;
-    ::std::cout<<META_STRING("hello world!")::c_str().value<<::std::endl;
     return 0;
 }
