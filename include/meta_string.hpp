@@ -73,3 +73,4 @@ decltype( \
         __META_STRING_HELPER(__C_STYLE_STRING_LITERAL__){} \
     ) \
 )
+

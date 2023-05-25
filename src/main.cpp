@@ -41,5 +41,9 @@ meta::Enable<meta::True,int> main(void){
     ::std::cout<<meta::type_name<
         META_STRING(META_FUNCTION_NAME)
     >()<<::std::endl;
+    using HelloType=::meta::Auto<::meta::CStr(META_STRING("hello")::value)>;
+     ::std::cout<<meta::type_name<
+        HelloType
+    >()<<::std::endl;
     return 0;
 }
