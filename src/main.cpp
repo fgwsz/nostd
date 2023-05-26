@@ -35,12 +35,6 @@ meta::Enable<meta::True,int> main(void){
             meta::Auto<meta::SizeType(31)>
         >::Type
     >()<<::std::endl;
-    ::std::cout<<meta::type_name<
-        META_STRING(META_FUNCTION_NAME)
-    >()<<::std::endl;
-    using HelloType=::meta::Auto<::meta::CStr(META_STRING("hello")::value)>;
-     ::std::cout<<meta::type_name<
-        HelloType
-    >()<<::std::endl;
+    using ret=decltype(IfThenElse::apply(ConstantAuto<false>(),int(0),::meta::Auto<false>()));
     return 0;
 }

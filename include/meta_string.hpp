@@ -2,23 +2,24 @@
 #include"meta.hpp"
 namespace meta{
 template<typename _CharType,SizeType _length>
-struct CStr{
+struct CStr final{
     using CharType=_CharType;
     static constexpr auto length=_length;
     _CharType value[_length]{};
-    consteval CStr(_CharType const(&c_str)[_length]){
+    consteval CStr(_CharType const(&c_str)[_length])noexcept{
         for(SizeType index=0;index<_length;++index){
             this->value[index]=c_str[index];
         }
     }
-    constexpr CStr& operator=(CStr const&)=default;
+    consteval CStr(CStr const&)noexcept=default;
+    consteval CStr& operator=(CStr const&)noexcept=default;
 };
 template<
     typename _CharType,
     SizeType _length,
     CStr<_CharType,_length> _c_str
 >
-struct StringHelper{
+struct StringHelper final{
     static consteval auto c_str(){
         return _c_str;
     }
