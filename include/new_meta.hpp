@@ -34,7 +34,7 @@ struct Array final{
     // 可以直接传入c风格的字符串字面量来实例化一个类对象
     // C++20新特性类模板推断
     // 使用Array("hello")语句
-    // 等效于Array<char,5>{"hello"}
+    // 等效于Array<char,6>{"hello"}
     consteval Array(_ElementType const(&c_array)[_size])noexcept{
     // 注意此处使用_ElementType const(&)[_size]而不使用reference_type
     // 在gcc中使用类型别名reference_type会导致编译不通过
@@ -43,6 +43,7 @@ struct Array final{
             this->value[index]=c_array[index];
         }
     }
+    consteval Array()noexcept=default;
     constexpr reference_type operator()()const noexcept{
         return this->value;
     }
@@ -132,5 +133,70 @@ META_FUNC_CLASS(If,
         return false_ret;
     }
 )
+
+template<
+    typename _ElementType,
+    size_t size_1,
+    size_t size_2
+>
+static consteval auto operator+(
+    Array<_ElementType,size_1> array_1,
+    Array<_ElementType,size_2> array_2
+)noexcept{
+    constexpr auto size=size_1+size_2;
+    Array<_ElementType,size> ret;
+    for(size_t index=0;index<size_1;++index){
+        ret.value[index]=array_1.value[index];
+    }
+    for(size_t index=0;index<size_2;++index){
+        ret.value[index+size_1]=array_2.value[index];
+    }
+    return ret;
+}
+
+template<typename _CharType,size_t _size>
+struct String final{
+    using type=String;
+    using char_type=_CharType;
+    static constexpr size_t size=_size;
+    using value_type=char_type[size];
+    value_type value{};
+    using reference_type=char_type const(&)[size];
+    consteval String(_CharType const(&c_str)[_size])noexcept{
+        for(size_t index=0;index<size;++index){
+            this->value[index]=c_str[index];
+        }
+    }
+    consteval String()noexcept=default;
+    constexpr reference_type operator()()const noexcept{
+        return this->value;
+    }
+    constexpr operator reference_type()const noexcept{
+        return this->value;
+    }
+};
+
+template<String _value>
+using string_c=Constant<decltype(_value),_value>;
+
+template<
+    typename _ElementType,
+    size_t size_1,
+    size_t size_2
+>
+static consteval auto operator+(
+    String<_ElementType,size_1> string_1,
+    String<_ElementType,size_2> string_2
+)noexcept{
+    constexpr auto size=size_1+size_2-1;
+    String<_ElementType,size> ret;
+    for(size_t index=0;index<size_1-1;++index){
+        ret.value[index]=string_1.value[index];
+    }
+    for(size_t index=0;index<size_2;++index){
+        ret.value[index+size_1-1]=string_2.value[index];
+    }
+    return ret;
+}
 
 } // namespace nostd

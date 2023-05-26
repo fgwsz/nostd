@@ -28,5 +28,13 @@ int main(void){
         double{},
         nostd::array_c<"show time!">{}
     ).value<<::std::endl;
+    nostd::string_c<
+        nostd::String("hello")+
+        nostd::String(" world!")+
+        nostd::String(" haha")
+    > str;
+    ::std::cout<<meta::type_name<
+       decltype(str) 
+    >()<<::std::endl;
     return 0;
 }
