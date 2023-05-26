@@ -168,10 +168,6 @@ using SizeType=unsigned long long;
 // [out] ::Type [info] type of Sequence<SizeType,...> Instance
 template<typename _BeginIndex,typename _EndIndex>
 struct Sequence_MakeIndexs;
-// get a static constance from Sequence<> instance back
-// [info] class template
-// [in] _Sequence [info] type of Sequence<> Instance
-// [out] ::Type [info] type of Constant<>
 
 // ===========================================================================
 // IMPL
