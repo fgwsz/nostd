@@ -43,7 +43,8 @@ int main(void){
             nostd::usize_c<8>{}
         )
     <<::std::endl;
-    ::std::cout<<nostd::TestClassTmp::apply(
+    ::std::cout<<nostd::invoke(
+        nostd::TestClassTmp{},
         nostd::String("hello"),nostd::Array(" world")
     ).value<<::std::endl;
     return 0;

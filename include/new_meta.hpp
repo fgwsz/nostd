@@ -103,10 +103,48 @@ struct String final{
 template<String _value>
 using string_c=Constant<decltype(_value),_value>;
 
+struct MetaFuncClassTag final{};
+
+template<typename _Type_1,typename _Type_2>
+struct IsSame{
+    static constexpr auto value=false;
+};
+template<typename _Type>
+struct IsSame<_Type,_Type>{
+    static constexpr auto value=true;
+};
+template<typename _Type_1,typename _Type_2>
+static constexpr auto is_same_v=IsSame<_Type_1,_Type_2>::value;
+
+template<typename _Type>
+concept constant_instance=is_same_v<typename _Type::tag,ConstantTag>;
+template<typename _Type>
+concept array_instance=is_same_v<typename _Type::tag,ArrayTag>;
+template<typename _Type>
+concept string_instance=is_same_v<typename _Type::tag,StringTag>;
+template<typename _Type>
+concept meta_func_class_instance=is_same_v<typename _Type::tag,MetaFuncClassTag>;
+template<typename _Type>
+concept bool_constant_instanct=constant_instance<_Type>&&
+    is_same_v<typename _Type::value_type,bool>;
+template<typename _Type>
+concept usize_constant_instanct=constant_instance<_Type>&&
+    is_same_v<typename _Type::value_type,usize_t>;
+template<typename _Type>
+concept ssize_constant_instanct=constant_instance<_Type>&&
+    is_same_v<typename _Type::value_type,ssize_t>;
+template<typename _Type>
+concept array_constant_instanct=constant_instance<_Type>&&
+    array_instance<typename _Type::value_type>;
+template<typename _Type>
+concept string_constant_instanct=constant_instance<_Type>&&
+    string_instance<typename _Type::value_type>;
+
 #define META_FUNC_CLASS_BEGIN(__NAME__) \
     struct __NAME__ final{ \
     public: \
         consteval __NAME__()=default; \
+        using tag=MetaFuncClassTag; \
 //
 
 #define META_FUNC_CLASS_END \
@@ -122,9 +160,12 @@ using string_c=Constant<decltype(_value),_value>;
 //
 
 META_FUNC_CLASS_BEGIN(Invoke)
-    template<typename _MetaFuncClass,typename..._Types>
+    template<
+        meta_func_class_instance _meta_func_class,
+        typename..._Types
+    >
     META_FUNC_ARGS_BEGIN
-        _MetaFuncClass meta_func_class_obj,
+        _meta_func_class meta_func_class_obj,
         _Types...args
     META_FUNC_ARGS_END
     {
@@ -315,22 +356,6 @@ META_FUNC_CLASS_BEGIN(String_SubStr)
 META_FUNC_CLASS_END
 
 
-template<typename _Type_1,typename _Type_2>
-struct IsSame{
-    static constexpr auto value=false;
-};
-template<typename _Type>
-struct IsSame<_Type,_Type>{
-    static constexpr auto value=true;
-};
-template<typename _Type_1,typename _Type_2>
-static constexpr auto is_same_v=IsSame<_Type_1,_Type_2>::value;
-template<typename _Type>
-concept constant_instance=is_same_v<typename _Type::tag,ConstantTag>;
-template<typename _Type>
-concept array_instance=is_same_v<typename _Type::tag,ArrayTag>;
-template<typename _Type>
-concept string_instance=is_same_v<typename _Type::tag,StringTag>;
 
 META_FUNC_CLASS_BEGIN(TestClassTmp)
     template<
