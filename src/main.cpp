@@ -28,24 +28,26 @@ int main(void){
         double{},
         nostd::array_c<"show time!">{}
     ).value<<::std::endl;
-    nostd::string_c<
-        nostd::String("hello")+
-        nostd::String(" world!")+
-        nostd::String(" haha")
+    nostd::array_c<
+        nostd::Array("hello")+
+        nostd::Array(" world!")+
+        nostd::Array(" haha")
     > str;
     ::std::cout<<meta::type_name<
        decltype(str) 
     >()<<::std::endl;
-    ::std::cout<<
+    ::std::cout<<nostd::string_c<
         nostd::String_SubStr::apply(
-            nostd::String("0123456789"),
+            nostd::string_c<"0123456789">{},
             nostd::usize_c<3>{},
             nostd::usize_c<8>{}
-        )
+    )>{}.value
     <<::std::endl;
-    ::std::cout<<nostd::invoke(
-        nostd::TestClassTmp{},
-        nostd::String("hello"),nostd::Array(" world")
-    ).value<<::std::endl;
+    constexpr auto a_st=nostd::String("hello");
+    ::std::cout<<nostd::ssize_c<
+        nostd::String_FindFirstOf::apply(
+            nostd::string_c<a_st>{},
+            nostd::Constant<char,'e'>{}
+    )>{}<<::std::endl;
     return 0;
 }

@@ -10,6 +10,7 @@ namespace nostd{
 // 书写元函数的实现时要注意：
 // 函数模板的模板参数列表里面的东西只是用来进行类型检查的，
 // 在函数体实现的时候能不用模板参数列表里面的东西就尽量不要用
+// 调用函数模板的时候必须使用全命名空间名称，防止发生调用歧义
 struct ConstantTag final{};
 // 将编译期常量转化为类型
 template<typename _ValueType,_ValueType _value>
@@ -105,6 +106,106 @@ using string_c=Constant<decltype(_value),_value>;
 
 struct MetaFuncClassTag final{};
 
+template<typename _Type>
+struct IsConst{
+    static constexpr auto value=false;
+};
+template<typename _Type>
+struct IsConst<_Type const>{
+    static constexpr auto value=true;
+};
+template<typename _Type>
+static constexpr auto is_const_v=IsConst<_Type>::value;
+
+template<typename _Type>
+struct IsVolatile{
+    static constexpr auto value=false;
+};
+template<typename _Type>
+struct IsVolatile<_Type volatile>{
+    static constexpr auto value=true;
+};
+template<typename _Type>
+static constexpr auto is_volatile_v=IsVolatile<_Type>::value;
+
+template<typename _Type>
+struct IsLeftValueReference{
+    static constexpr auto value=false;
+};
+template<typename _Type>
+struct IsLeftValueReference<_Type&>{
+    static constexpr auto value=true;
+};
+template<typename _Type>
+static constexpr auto is_left_value_reference_v=IsLeftValueReference<_Type>::value;
+
+template<typename _Type>
+struct IsRightValueReference{
+    static constexpr auto value=false;
+};
+template<typename _Type>
+struct IsRightValueReference<_Type&&>{
+    static constexpr auto value=true;
+};
+template<typename _Type>
+static constexpr auto is_right_value_reference_v=IsRightValueReference<_Type>::value;
+
+template<typename _Type>
+struct RemoveConst{
+    using type=_Type;
+};
+template<typename _Type>
+struct RemoveConst<_Type const>{
+    using type=_Type;
+};
+template<typename _Type>
+using remove_const_t=typename RemoveConst<_Type>::type;
+
+template<typename _Type>
+struct RemoveVolatile{
+    using type=_Type;
+};
+template<typename _Type>
+struct RemoveVolatile<_Type volatile>{
+    using type=_Type;
+};
+template<typename _Type>
+using remove_volatile_t=typename RemoveVolatile<_Type>::type;
+
+template<typename _Type>
+struct RemoveLeftValueReference{
+    using type=_Type;
+};
+template<typename _Type>
+struct RemoveLeftValueReference<_Type&>{
+    using type=_Type;
+};
+template<typename _Type>
+using remove_left_value_reference_t=typename RemoveLeftValueReference<_Type>::type;
+
+template<typename _Type>
+struct RemoveRightValueReference{
+    using type=_Type;
+};
+template<typename _Type>
+struct RemoveRightValueReference<_Type&&>{
+    using type=_Type;
+};
+template<typename _Type>
+using remove_right_value_reference_t=typename RemoveRightValueReference<_Type>::type;
+
+template<typename _Type>
+using remove_reference_t=
+remove_right_value_reference_t<
+    remove_left_value_reference_t<_Type>
+>;
+
+template<typename _Type>
+using remove_cv_t=remove_volatile_t<remove_const_t<_Type>>;
+
+template<typename _Type>
+using remove_cvref_t=remove_cv_t<remove_reference_t<_Type>>;
+
 template<typename _Type_1,typename _Type_2>
 struct IsSame{
     static constexpr auto value=false;
@@ -114,31 +215,71 @@ struct IsSame<_Type,_Type>{
     static constexpr auto value=true;
 };
 template<typename _Type_1,typename _Type_2>
-static constexpr auto is_same_v=IsSame<_Type_1,_Type_2>::value;
+static constexpr auto is_same_v=
+IsSame<
+    remove_cvref_t<_Type_1>,
+    remove_cvref_t<_Type_2>
+>::value;
 
 template<typename _Type>
-concept constant_instance=is_same_v<typename _Type::tag,ConstantTag>;
+concept has_tag=requires{
+    typename _Type::tag;
+};
+
 template<typename _Type>
-concept array_instance=is_same_v<typename _Type::tag,ArrayTag>;
+concept constant_instance=
+    has_tag<_Type>&&
+    is_same_v<typename _Type::tag,ConstantTag>;
+
+template<typename _Type,typename _ValueType>
+concept constant_instance_of=
+    constant_instance<_Type>&&
+    is_same_v<typename _Type::value_type,_ValueType>;
+
 template<typename _Type>
-concept string_instance=is_same_v<typename _Type::tag,StringTag>;
+concept array_instance=
+    has_tag<_Type>&&
+    is_same_v<typename _Type::tag,ArrayTag>;
+
+template<typename _Type,typename _ElementType>
+concept array_instance_of=
+    array_instance<_Type>&&
+    is_same_v<typename _Type::element_type,_ElementType>;
+
 template<typename _Type>
-concept meta_func_class_instance=is_same_v<typename _Type::tag,MetaFuncClassTag>;
+concept string_instance=
+    has_tag<_Type>&&
+    is_same_v<typename _Type::tag,StringTag>;
+
+template<typename _Type,typename _CharType>
+concept string_instance_of=
+    string_instance<_Type>&&
+    is_same_v<typename _Type::char_type,_CharType>;
+
 template<typename _Type>
-concept bool_constant_instanct=constant_instance<_Type>&&
-    is_same_v<typename _Type::value_type,bool>;
+concept meta_func_class_instance=
+    has_tag<_Type>&&
+    is_same_v<typename _Type::tag,MetaFuncClassTag>;
+
 template<typename _Type>
-concept usize_constant_instanct=constant_instance<_Type>&&
-    is_same_v<typename _Type::value_type,usize_t>;
-template<typename _Type>
-concept ssize_constant_instanct=constant_instance<_Type>&&
-    is_same_v<typename _Type::value_type,ssize_t>;
-template<typename _Type>
-concept array_constant_instanct=constant_instance<_Type>&&
+concept array_constant_instance=
+    constant_instance<_Type>&&
     array_instance<typename _Type::value_type>;
+
+template<typename _Type,typename _ElementType>
+concept array_constant_instanct_of=
+    array_constant_instance<_Type>&&
+    array_instance_of<typename _Type::value_type,_ElementType>;
+
 template<typename _Type>
-concept string_constant_instanct=constant_instance<_Type>&&
+concept string_constant_instance=
+    constant_instance<_Type>&&
     string_instance<typename _Type::value_type>;
+
+template<typename _Type,typename _CharType>
+concept string_constant_instanct_of=
+    string_constant_instance<_Type>&&
+    string_instance_of<typename _Type::value_type,_CharType>;
 
 #define META_FUNC_CLASS_BEGIN(__NAME__) \
     struct __NAME__ final{ \
@@ -173,36 +314,50 @@ META_FUNC_CLASS_BEGIN(Invoke)
     }
 META_FUNC_CLASS_END
 
-template<typename _MetaFuncClass,typename..._Types>
+template<
+    meta_func_class_instance _meta_func_class,
+    typename..._Types
+>
 static consteval auto invoke(
-    _MetaFuncClass meta_func_class_obj,
+    _meta_func_class meta_func_class_obj,
     _Types...args
 )noexcept{
-    return Invoke::apply<_MetaFuncClass,_Types...>(
+    return ::nostd::Invoke::apply(
         meta_func_class_obj,
         args...
     );
 }
 
 template<typename _Type>
+concept has_default_ctor=requires{
+    _Type{};
+};
+
+template<typename _Type> requires has_default_ctor<_Type>
 static consteval auto create()noexcept{
     return _Type{};
 }
 
-template<typename _MetaFuncClass,typename..._Types>
+template<
+    meta_func_class_instance _meta_func_class,
+    typename..._Types
+>
 using invoke_t=
 decltype(
-    invoke(
-        create<_MetaFuncClass>(),
-        create<_Types>()...
+    ::nostd::invoke(
+        ::nostd::create<_meta_func_class>(),
+        ::nostd::create<_Types>()...
     )
 );
 
-template<typename _MetaFuncClass,typename..._Types>
+template<
+    meta_func_class_instance _meta_func_class,
+    typename..._Types
+>
 static constexpr auto invoke_v=
-invoke(
-    create<_MetaFuncClass>(),
-    create<_Types>()...
+::nostd::invoke(
+    ::nostd::create<_meta_func_class>(),
+    ::nostd::create<_Types>()...
 ).value;
 
 META_FUNC_CLASS_BEGIN(If)
@@ -227,13 +382,16 @@ META_FUNC_CLASS_BEGIN(If)
 META_FUNC_CLASS_END
 
 template<
-    typename _ElementType,
-    usize_t _usize_1,
-    usize_t _usize_2
+    array_instance _array_1,
+    array_instance _array_2
+>
+requires is_same_v<
+    typename _array_1::element_type,
+    typename _array_2::element_type
 >
 static consteval auto operator+(
-    Array<_ElementType,_usize_1> array_1,
-    Array<_ElementType,_usize_2> array_2
+    _array_1 array_1,
+    _array_2 array_2
 )noexcept{
     constexpr auto size=array_1.size+array_2.size;
     using element_type=typename decltype(array_1)::element_type;
@@ -251,13 +409,16 @@ static consteval auto operator+(
 }
 
 template<
-    typename _CharType,
-    usize_t _usize_1,
-    usize_t _usize_2
+    string_instance _string_1,
+    string_instance _string_2
+>
+requires is_same_v<
+    typename _string_1::char_type,
+    typename _string_2::char_type
 >
 static consteval auto operator+(
-    String<_CharType,_usize_1> string_1,
-    String<_CharType,_usize_2> string_2
+    _string_1 string_1,
+    _string_2 string_2
 )noexcept{
     constexpr auto length=string_1.length+string_2.length;
     constexpr auto size=length+1;
@@ -276,16 +437,29 @@ static consteval auto operator+(
     return ret;
 }
 
+template<typename _Type_1,typename _Type_2>
+concept comparable=requires(_Type_1 value_1,_Type_2 value_2){
+    value_1 <   value_2;
+    value_1 <=  value_2;
+    value_1 >   value_2;
+    value_1 >=  value_2;
+    value_1 ==  value_2;
+    value_1 !=  value_2;
+    value_1 <=> value_2;
+};
+
 META_FUNC_CLASS_BEGIN(Constant_Max)
     template<
-        typename _ValueType_1,
-        typename _ValueType_2,
-        _ValueType_1 _value_1,
-        _ValueType_2 _value_2
+        constant_instance _constant_1,
+        constant_instance _constant_2
+    >
+    requires comparable<
+        typename _constant_1::value_type,
+        typename _constant_2::value_type
     >
     META_FUNC_ARGS_BEGIN
-        Constant<_ValueType_1,_value_1> constant_1,
-        Constant<_ValueType_2,_value_2> constant_2
+        _constant_1 constant_1,
+        _constant_2 constant_2
     META_FUNC_ARGS_END
     {
         constexpr auto const condition=
@@ -300,14 +474,16 @@ META_FUNC_CLASS_END
 
 META_FUNC_CLASS_BEGIN(Constant_Min)
     template<
-        typename _ValueType_1,
-        typename _ValueType_2,
-        _ValueType_1 _value_1,
-        _ValueType_2 _value_2
+        constant_instance _constant_1,
+        constant_instance _constant_2
+    >
+    requires comparable<
+        typename _constant_1::value_type,
+        typename _constant_2::value_type
     >
     META_FUNC_ARGS_BEGIN
-        Constant<_ValueType_1,_value_1> constant_1,
-        Constant<_ValueType_2,_value_2> constant_2
+        _constant_1 constant_1,
+        _constant_2 constant_2
     META_FUNC_ARGS_END
     {
         constexpr auto const condition=
@@ -322,32 +498,31 @@ META_FUNC_CLASS_END
 
 META_FUNC_CLASS_BEGIN(String_SubStr)
     template<
-        typename _CharType,
-        usize_t _string_size,
-        usize_t _begin_index,
-        usize_t _end_index
+        string_constant_instance _string,
+        constant_instance_of<usize_t> _usize_c_1,
+        constant_instance_of<usize_t> _usize_c_2
     >
     META_FUNC_ARGS_BEGIN
-        String<_CharType,_string_size> string,
-        Constant<usize_t,_begin_index> begin_index,
-        Constant<usize_t,_end_index> end_index
+        _string string,
+        _usize_c_1 begin_index,
+        _usize_c_2 end_index
     META_FUNC_ARGS_END
     {
         static_assert(begin_index.value<end_index.value,
             "begin_index must be less than end_index");
-        static_assert(begin_index.value<(string.length),
+        static_assert(begin_index.value<(string.value.length),
             "begin_index must be less than end_index");
         constexpr auto end=Constant_Min::apply(
             end_index,
-            usize_c<string.length>{}
+            usize_c<string.value.length>{}
         ).value;
         constexpr auto length=end-begin_index.value;
         constexpr auto size=length+1;
-        using char_type=typename decltype(string)::char_type;
+        using char_type=typename decltype(string.value)::char_type;
         String<char_type,size> ret;
         usize_t ret_index=0;
         for(usize_t string_index=begin_index;string_index<end;++string_index){
-            ret.value[ret_index]=string.value[string_index];
+            ret.value[ret_index]=string.value.value[string_index];
             ++ret_index;
         }
         ret.value[ret_index]='\0';
@@ -355,28 +530,29 @@ META_FUNC_CLASS_BEGIN(String_SubStr)
     }
 META_FUNC_CLASS_END
 
+template<typename _Type>
+static consteval auto auto_c(_Type _value)noexcept{
+    Constant<_Type,_Type{_value}> ret;
+    return ret;
+}
 
-
-META_FUNC_CLASS_BEGIN(TestClassTmp)
+META_FUNC_CLASS_BEGIN(String_FindFirstOf)
     template<
-        String _string,
-        Array _array
+        string_constant_instance _string,
+        constant_instance_of<typename _string::value_type::char_type> _char
     >
     META_FUNC_ARGS_BEGIN
+        _string string,
+        _char ch
     META_FUNC_ARGS_END
     {
-        return string_c<"ok!">{};
-    }
-    template<
-        string_instance _str,
-        array_instance _arr
-    >
-    META_FUNC_ARGS_BEGIN
-        _str _string,
-        _arr _array
-    META_FUNC_ARGS_END
-    {
-        return string_c<"ok!">{};
+        ssize_t index=0;
+        for(;index<string.value.length;++index){
+            if(string.value.value[index]==ch.value){
+                break;
+            }
+        }
+        return index==string.value.length?-1:index;
     }
 META_FUNC_CLASS_END
 
