@@ -36,5 +36,15 @@ int main(void){
     ::std::cout<<meta::type_name<
        decltype(str) 
     >()<<::std::endl;
+    ::std::cout<<
+        nostd::String_SubStr::apply(
+            nostd::String("0123456789"),
+            nostd::usize_c<3>{},
+            nostd::usize_c<8>{}
+        )
+    <<::std::endl;
+    ::std::cout<<nostd::TestClassTmp::apply(
+        nostd::String("hello"),nostd::Array(" world")
+    ).value<<::std::endl;
     return 0;
 }
