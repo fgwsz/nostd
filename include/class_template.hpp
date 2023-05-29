@@ -21,6 +21,8 @@ template<typename _Type,_Type _value>
 struct Constant;
 using true_type=Constant<bool,true>;
 using false_type=Constant<bool,false>;
+struct PlaceHolder{};
+using _=PlaceHolder;
 /**********************************************************************************************/
 // 数据外覆类接口
 /**********************************************************************************************/
@@ -126,6 +128,18 @@ template<
     constant_of<usize_t> _EndIndex
 >
 struct typelist_sublist;
+
+template<
+    check_tag<ClassTemplateTag> _ClassTemplate,
+    check_tag<TypeListTag> _TypeList,
+>
+struct typelist_apply_to;
+
+template<
+    check_tag<ClassTemplateTag> _ClassTemplate,
+    typename..._Types
+>
+struct bind_with_placeholder;
 /**********************************************************************************************/
 // 别名模板接口
 /**********************************************************************************************/
@@ -209,6 +223,18 @@ template<
     constant_of<usize_t> _EndIndex
 >
 using typelist_sublist_t=typename typelist_sublist<_TypeList,_BeginIndex,_EndIndex>::type;
+
+template<
+    check_tag<ClassTemplateTag> _ClassTemplate,
+    check_tag<TypeListTag> _TypeList,
+>
+using typelist_apply_to_t=typename typelist_apply_to<_ClassTemplate,_TypeList>::type;
+
+template<
+    check_tag<ClassTemplateTag> _ClassTemplate,
+    typename..._Types
+>
+using bind_with_placeholder_t=typename bind_with_placeholder<_ClassTemplate,_Types...>::type;
 /**********************************************************************************************/
 // 数据外覆类实现
 /**********************************************************************************************/
@@ -530,6 +556,44 @@ struct typelist_sublist{
             usize_constant<0>
         >
     >::template apply<>::type;
+    using tag=MetaFunctionTag;
+};
+
+template<
+    check_tag<ClassTemplateTag> _ClassTemplate,
+    typename..._Types
+>
+struct typelist_apply_to<_ClassTemplate,TypeList<_Types...>>{
+    using type=typename _ClassTemplate::template apply<_Types...>;
+    using tag=MetaFunctionTag;
+};
+
+template<
+    check_tag<TypeListTag> _BindArgList,
+    check_tag<TypeListTag> _ApplyList
+>
+typename __bind_with_placeholder_helper{
+    // TODO
+    using type=NullType;
+};
+
+template<
+    check_tag<ClassTemplateTag> _ClassTemplate,
+    typename..._Types
+>
+struct bind_with_placeholder{
+// TODO
+    using bind_arg_list=TypeList<_Types...>;
+    template<typename..._Ts>
+    struct binder
+        :public typelist_apply_to_t<
+            _ClassTemplate,
+            typename __bind_with_placeholder_helper<
+                bind_arg_list,
+                TypeList<_Ts...>
+            >::type
+        >{};
+    using type=ClassTemplate<binder>;
     using tag=MetaFunctionTag;
 };
 
