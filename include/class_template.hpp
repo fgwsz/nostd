@@ -21,8 +21,11 @@ template<typename _Type,_Type _value>
 struct Constant;
 using true_type=Constant<bool,true>;
 using false_type=Constant<bool,false>;
+template<usize_t _position>
 struct PlaceHolder{};
-using _=PlaceHolder;
+template<usize_t _position>
+using _p=PlaceHolder<_position>;
+using _=_p<0>;
 /**********************************************************************************************/
 // 数据外覆类接口
 /**********************************************************************************************/
@@ -131,7 +134,7 @@ struct typelist_sublist;
 
 template<
     check_tag<ClassTemplateTag> _ClassTemplate,
-    check_tag<TypeListTag> _TypeList,
+    check_tag<TypeListTag> _TypeList
 >
 struct typelist_apply_to;
 
@@ -226,7 +229,7 @@ using typelist_sublist_t=typename typelist_sublist<_TypeList,_BeginIndex,_EndInd
 
 template<
     check_tag<ClassTemplateTag> _ClassTemplate,
-    check_tag<TypeListTag> _TypeList,
+    check_tag<TypeListTag> _TypeList
 >
 using typelist_apply_to_t=typename typelist_apply_to<_ClassTemplate,_TypeList>::type;
 
@@ -570,11 +573,13 @@ struct typelist_apply_to<_ClassTemplate,TypeList<_Types...>>{
 
 template<
     check_tag<TypeListTag> _BindArgList,
-    check_tag<TypeListTag> _ApplyList
+    check_tag<TypeListTag> _ApplyArgList
 >
-typename __bind_with_placeholder_helper{
+struct __bind_with_placeholder_helper{
     // TODO
-    using type=NullType;
+    using type=TypeList<>;
+    // 负责把 _BindArgList中的 PlaceHolder<pos> 变成_ApplyArgList中对应位置的值?显然是的
+    // pretty_bind
 };
 
 template<
