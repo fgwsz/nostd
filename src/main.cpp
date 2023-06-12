@@ -1,6 +1,16 @@
 ﻿#include<iostream>
 #include"class_template.hpp"
 #include"meta_name.hpp"
+#include"meta_string.hpp"
+#include"static_typename.hpp"
+template<typename _Type>
+consteval auto foo(){
+    if constexpr(sizeof(_Type)==0){
+        return int{};
+    }else{
+        return double{};
+    }
+}
 int main(void){
     using namespace tmp;
     using typelist=TypeList<
@@ -23,6 +33,9 @@ int main(void){
     ::std::cout<<meta::type_name<
         type_2
     >()<<std::endl;
-
+    auto a=::meta::type_name<decltype((int*)(0)==0)>();
+    foo<int>();
+    constexpr auto str=::nostd::static_typename<void>();
+    ::std::cout<<str<<::std::endl;
     return 0;
 }

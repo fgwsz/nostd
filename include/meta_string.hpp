@@ -20,21 +20,20 @@ template<
     CStr<_CharType,_length> _c_str
 >
 struct StringHelper final{
-    static consteval auto c_str(){
+    static consteval auto c_str()noexcept{
         return _c_str;
     }
 };
 template<typename _StringHelper>
-static consteval auto __string_helper_char_type(_StringHelper string_helper)
-{
+static consteval auto __string_helper_char_type(_StringHelper string_helper)noexcept{
     return typename decltype(string_helper.c_str())::CharType{};
 }
 template<typename _StringHelper>
-static consteval auto __string_helper_length(_StringHelper string_helper){
+static consteval auto __string_helper_length(_StringHelper string_helper)noexcept{
     return string_helper.c_str().length;
 }
 template<typename _StringHelper>
-static consteval auto __string_helper_indexs(_StringHelper string_helper){
+static consteval auto __string_helper_indexs(_StringHelper string_helper)noexcept{
     return typename Sequence_MakeIndexs<
         Auto<SizeType(0)>,
         Auto<__string_helper_length(string_helper)>
@@ -44,7 +43,7 @@ template<typename _StringHelper,SizeType..._indexs>
 static consteval auto __string_helper_to_sequence_detail(
     _StringHelper string_helper,
     Sequence<SizeType,_indexs...> indexs
-){
+)noexcept{
     return Sequence<
         decltype(__string_helper_char_type(string_helper)),
         string_helper.c_str().value[_indexs]...
@@ -53,7 +52,7 @@ static consteval auto __string_helper_to_sequence_detail(
 template<typename _StringHelper>
 static consteval auto __string_helper_to_sequence(
     _StringHelper string_helper
-){
+)noexcept{
     return __string_helper_to_sequence_detail(
         string_helper,
         __string_helper_indexs(string_helper)
