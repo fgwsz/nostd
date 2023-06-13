@@ -3,6 +3,7 @@
 #include"meta_name.hpp"
 #include"meta_string.hpp"
 #include"static_typename.hpp"
+#include"static_string.hpp"
 template<typename _Type>
 consteval auto foo(){
     if constexpr(sizeof(_Type)==0){
@@ -35,7 +36,8 @@ int main(void){
     >()<<std::endl;
     auto a=::meta::type_name<decltype((int*)(0)==0)>();
     foo<int>();
-    constexpr auto str=::nostd::static_typename<void>();
+    constexpr auto str=::nostd::static_typename<void const volatile>();
     ::std::cout<<str<<::std::endl;
+    ::std::cout<<::nostd::static_typename<nostd::tts>()<<::std::endl;
     return 0;
 }

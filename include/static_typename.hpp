@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<string_view>
 namespace nostd{
 namespace detail{
@@ -13,18 +13,21 @@ struct __StaticTypename final{
 private:
     consteval void __init_data()noexcept{
         using data_t=decltype(this->data_);
-    #if defined(_MSC_VER)
-        data_t result{__FUNCSIG__};
-        auto begin=result.find_first_of('<')+1;
-        auto end=result.find_last_of('>');
-    #else
+    // gcc||clang||msvc with clang||mingw
+    #if defined(__GUNC__)||defined(__clang__)|| \
+        defined(__MINGW32__)||defined(__MINGW64__)
         data_t result{__PRETTY_FUNCTION__};
-        auto begin=result.find_first_of('=')+1;
-        auto end=result.find_last_of(']');
+        auto front_index=result.find_first_of('=')+1;
+        auto back_index=result.find_last_of(']')-1;
+    // msvc without clang
+    #elif defined(_MSC_VER)
+        data_t result{__FUNCSIG__};
+        auto front_index=result.find_first_of('<')+1;
+        auto back_index=result.find_last_of('>')-1;
     #endif
-        while(result[begin]==' '){++begin;}
-        while(result[end]==' '){--end;}
-        this->data_=result.substr(begin,end-begin);
+        front_index=result.find_first_not_of(' ',front_index);
+        back_index=result.find_last_not_of(' ',back_index);
+        this->data_=result.substr(front_index,back_index-front_index+1);
     }
     ::std::string_view data_;
 };
