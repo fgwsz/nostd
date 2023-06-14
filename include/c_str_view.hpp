@@ -48,7 +48,7 @@ consteval auto c_str_view_to_char_sequence(
     };
     return to_char_sequence(
         c_str_view,
-        ::std::make_index_sequence<_CStrView::size>{}
+        ::std::make_index_sequence<c_str_view.size>{}
     );
 }
 template<typename _CStrView>
