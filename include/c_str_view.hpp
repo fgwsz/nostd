@@ -117,6 +117,59 @@ using c_str_view_concat_t=typename CStrView_Concat<
     _CStrView,
     _CStrViews...
 >::type;
+// static reflection by c str view 
+namespace detail{
+template<typename _CStrView>
+struct __CStrViewToType{
+    using type=void;
+};
+// namespace nostd::detail end
+}
+// input<::nostd::CStrView<"type">>
+// return type
+template<typename _CStrView>
+using c_str_view_to_type_t=
+    typename detail::__CStrViewToType<_CStrView>::type;
+// input(...) is type
+// return void
+#define NOSTD_REGIST_TYPE(...) \
+namespace nostd::detail{ \
+template<>struct __CStrViewToType< \
+    ::nostd::CStrView<#__VA_ARGS__> \
+>{ \
+    using type=__VA_ARGS__; \
+}; \
+}
+// input(...) is ::nostd::CStrView<"type">
+// return type
+#define NOSTD_STATIC_REFLECT_TYPE(...) \
+::nostd::c_str_view_to_type_t<__VA_ARGS__>
+// regist class field
+// TODO
+template<
+    typename _CStrViewOfClassName,
+    typename _CStrViewOfFieldName,
+    auto _field_pointer
+>
+struct Field;
+template<
+    typename _CStrViewOfClassName,
+    typename _CStrViewOfFieldName,
+    typename _ClassType,
+    typename _FieldType,
+    _FieldType _ClassType::* _field_pointer
+>
+struct Field<
+    _CStrViewOfClassName,
+    _CStrViewOfFieldName,
+    _field_pointer
+>{
+    using class_name=_CStrViewOfClassName;
+    using field_name=_CStrViewOfFieldName;
+    using class_type=_ClassType;
+    using field_type=_FieldType;
+    static constexpr auto field_pointer=_field_pointer;
+};
 // c str view find first of
 // c str view find last of
 // c str view find first not of
@@ -124,4 +177,6 @@ using c_str_view_concat_t=typename CStrView_Concat<
 // c str view substr
 // c str view push back
 // c str view pop back
-} // namespace nostd
+
+// namespace nostd end
+}
