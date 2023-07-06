@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include<string_view>
-#include<iostream>
 namespace nostd{
 // Get the compile-time type name string of ${_Type}
 // input<${_Type}>
@@ -25,31 +24,3 @@ consteval auto type_name()noexcept{
 }
 // namespace nostd end
 }
-// Get the compile-time type name string of ${type}
-// input(...) is ${type}
-// return constexpr ::std::string_view
-#define NOSTD_TYPE_NAME(...) \
-::nostd::type_name<__VA_ARGS__>()
-// Get the compile-time type name string of ${expr}
-// input(...) is ${expr}
-// return constexpr ::std::string_view
-#define NOSTD_TYPE_NAME_OF(...) \
-::nostd::type_name<decltype(__VA_ARGS__)>()
-// Log type name string of type
-// input(...) is ${type}
-// return void
-#define NOSTD_LOG_TYPE_NAME(...) \
-do{ \
-    ::std::cout<<#__VA_ARGS__<<"=" \
-        <<NOSTD_TYPE_NAME(__VA_ARGS__) \
-        <<::std::endl; \
-}while(0)
-// Log type name string of ${expr}
-// input(...) is ${expr}
-// return void
-#define NOSTD_LOG_TYPE_NAME_OF(...) \
-do{ \
-    ::std::cout<<"{"<<#__VA_ARGS__<<"}->" \
-        <<NOSTD_TYPE_NAME_OF(__VA_ARGS__) \
-        <<::std::endl; \
-}while(0)
