@@ -10,69 +10,43 @@ struct CStyleVaList{
 using c_style_va_list_t=CStyleVaList;
 }
 namespace nostd::function_traits{
-template<typename _IsFunction>
-struct __Field_IsFunction{
-    using is_function=_IsFunction;
-};
-template<typename _IsMemberFunctionPointer>
-struct __Field_IsMemberFunctionPointer{
-    using is_member_function_pointer=_IsMemberFunctionPointer;
-};
-template<typename _ResultType>
-struct __Field_ResultType{
-    using result_type=_ResultType;
-};
-template<typename _ClassType>
-struct __Field_ClassType{
-    using class_type=_ClassType;
-};
-template<typename _ArgumentList>
-struct __Field_ArgumentList{
-    using argument_list=_ArgumentList;
-};
-template<typename _HasCStyleVaList>
-struct __Field_HasCStyleVaList{
-    using has_c_style_va_list=_HasCStyleVaList;
-};
-template<typename _HasConst>
-struct __Field_HasConst{
-    using has_const=_HasConst;
-};
-template<typename _HasVolatile>
-struct __Field_HasVolatile{
-    using has_volatile=_HasVolatile;
-};
-template<typename _HasLeftValueReference>
-struct __Field_HasLeftValueReference{
-    using has_left_value_reference=_HasLeftValueReference;
-};
-template<typename _HasRightValueReference>
-struct __Field_HasRightValueReference{
-    using has_right_value_reference=_HasRightValueReference;
-};
-template<typename _HasNoexcept>
-struct __Field_HasNoexcept{
-    using has_noexcept=_HasNoexcept;
-};
-template<typename _FunctionBaseType>
-struct __Field_FunctionBaseType{
-    using function_base_type=_FunctionBaseType;
-};
-
+#define __NOSTD_TYPE_FIELD_DEFINE(__NAME__) \
+template<typename _Type> \
+struct __TypeField_##__NAME__{ \
+    using __NAME__=_Type; \
+}; \
+//
+__NOSTD_TYPE_FIELD_DEFINE(is_function)
+__NOSTD_TYPE_FIELD_DEFINE(is_member_function_pointer)
+__NOSTD_TYPE_FIELD_DEFINE(result_type)
+__NOSTD_TYPE_FIELD_DEFINE(class_type)
+__NOSTD_TYPE_FIELD_DEFINE(argument_list)
+__NOSTD_TYPE_FIELD_DEFINE(has_c_style_va_list)
+__NOSTD_TYPE_FIELD_DEFINE(has_const)
+__NOSTD_TYPE_FIELD_DEFINE(has_volatile)
+__NOSTD_TYPE_FIELD_DEFINE(has_left_value_reference)
+__NOSTD_TYPE_FIELD_DEFINE(has_right_value_reference)
+__NOSTD_TYPE_FIELD_DEFINE(has_noexcept)
+__NOSTD_TYPE_FIELD_DEFINE(function_base_type)
+#undef __NOSTD_TYPE_FIELD_DEFINE
+//
+#define __NOSTD_TYPE_FIELD_SET(__NAME__,...) \
+__TypeField_##__NAME__<__VA_ARGS__>
+//
 template<typename _FunctionType>
 struct __FunctionTraits
-    :__Field_IsFunction<::std::false_type>
-    ,__Field_IsMemberFunctionPointer<::std::false_type>
-    ,__Field_ResultType<::nostd::undefined_type>
-    ,__Field_ClassType<::nostd::undefined_type>
-    ,__Field_ArgumentList<::nostd::undefined_type>
-    ,__Field_HasCStyleVaList<::std::false_type>
-    ,__Field_HasConst<::std::false_type>
-    ,__Field_HasVolatile<::std::false_type>
-    ,__Field_HasLeftValueReference<::std::false_type>
-    ,__Field_HasRightValueReference<::std::false_type>
-    ,__Field_HasNoexcept<::std::false_type>
-    ,__Field_FunctionBaseType<::nostd::undefined_type>
+    :__NOSTD_TYPE_FIELD_SET(is_function,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(is_member_function_pointer,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(result_type,::nostd::undefined_type)
+    ,__NOSTD_TYPE_FIELD_SET(class_type,::nostd::undefined_type)
+    ,__NOSTD_TYPE_FIELD_SET(argument_list,::nostd::undefined_type)
+    ,__NOSTD_TYPE_FIELD_SET(has_c_style_va_list,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(has_const,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(has_volatile,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(has_left_value_reference,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(has_right_value_reference,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(has_noexcept,::std::false_type)
+    ,__NOSTD_TYPE_FIELD_SET(function_base_type,::nostd::undefined_type)
 {};
 #define __NOSTD_EMPTY_MACRO
 #define __NOSTD_FUNCTION_TRAITS(__EXT__,__C__,__V__,__LVR__,__RVR__,__N__) \
@@ -82,18 +56,18 @@ template< \
 > \
 struct __FunctionTraits \
     <_ResultType(_Arguments...)__EXT__> \
-    :__Field_IsFunction<::std::true_type> \
-    ,__Field_IsMemberFunctionPointer<::std::false_type> \
-    ,__Field_ResultType<_ResultType> \
-    ,__Field_ClassType<::nostd::undefined_type> \
-    ,__Field_ArgumentList<::std::tuple<_Arguments...>> \
-    ,__Field_HasCStyleVaList<::std::false_type> \
-    ,__Field_HasConst<__C__> \
-    ,__Field_HasVolatile<__V__> \
-    ,__Field_HasLeftValueReference<__LVR__> \
-    ,__Field_HasRightValueReference<__RVR__> \
-    ,__Field_HasNoexcept<__N__> \
-    ,__Field_FunctionBaseType<_ResultType(_Arguments...)> \
+    :__NOSTD_TYPE_FIELD_SET(is_function,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(is_member_function_pointer,::std::false_type) \
+    ,__NOSTD_TYPE_FIELD_SET(result_type,_ResultType) \
+    ,__NOSTD_TYPE_FIELD_SET(class_type,::nostd::undefined_type) \
+    ,__NOSTD_TYPE_FIELD_SET(argument_list,::std::tuple<_Arguments...>) \
+    ,__NOSTD_TYPE_FIELD_SET(has_c_style_va_list,::std::false_type) \
+    ,__NOSTD_TYPE_FIELD_SET(has_const,__C__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_volatile,__V__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_left_value_reference,__LVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_right_value_reference,__RVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_noexcept,__N__) \
+    ,__NOSTD_TYPE_FIELD_SET(function_base_type,_ResultType(_Arguments...)) \
 {}; \
 template< \
     typename _ResultType, \
@@ -101,18 +75,18 @@ template< \
 > \
 struct __FunctionTraits \
     <_ResultType(_Arguments...,...)__EXT__> \
-    :__Field_IsFunction<::std::true_type> \
-    ,__Field_IsMemberFunctionPointer<::std::false_type> \
-    ,__Field_ResultType<_ResultType> \
-    ,__Field_ClassType<::nostd::undefined_type> \
-    ,__Field_ArgumentList<::std::tuple<_Arguments...,::nostd::c_style_va_list_t>> \
-    ,__Field_HasCStyleVaList<::std::true_type> \
-    ,__Field_HasConst<__C__> \
-    ,__Field_HasVolatile<__V__> \
-    ,__Field_HasLeftValueReference<__LVR__> \
-    ,__Field_HasRightValueReference<__RVR__> \
-    ,__Field_HasNoexcept<__N__> \
-    ,__Field_FunctionBaseType<_ResultType(_Arguments...,...)> \
+    :__NOSTD_TYPE_FIELD_SET(is_function,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(is_member_function_pointer,::std::false_type) \
+    ,__NOSTD_TYPE_FIELD_SET(result_type,_ResultType) \
+    ,__NOSTD_TYPE_FIELD_SET(class_type,::nostd::undefined_type) \
+    ,__NOSTD_TYPE_FIELD_SET(argument_list,::std::tuple<_Arguments...,::nostd::c_style_va_list_t>) \
+    ,__NOSTD_TYPE_FIELD_SET(has_c_style_va_list,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(has_const,__C__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_volatile,__V__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_left_value_reference,__LVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_right_value_reference,__RVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_noexcept,__N__) \
+    ,__NOSTD_TYPE_FIELD_SET(function_base_type,_ResultType(_Arguments...,...)) \
 {}; \
 template< \
     typename _ResultType, \
@@ -121,18 +95,18 @@ template< \
 > \
 struct __FunctionTraits \
     <_ResultType(_ClassType::*)(_Arguments...)__EXT__> \
-    :__Field_IsFunction<::std::true_type> \
-    ,__Field_IsMemberFunctionPointer<::std::true_type> \
-    ,__Field_ResultType<_ResultType> \
-    ,__Field_ClassType<_ClassType> \
-    ,__Field_ArgumentList<::std::tuple<_Arguments...>> \
-    ,__Field_HasCStyleVaList<::std::false_type> \
-    ,__Field_HasConst<__C__> \
-    ,__Field_HasVolatile<__V__> \
-    ,__Field_HasLeftValueReference<__LVR__> \
-    ,__Field_HasRightValueReference<__RVR__> \
-    ,__Field_HasNoexcept<__N__> \
-    ,__Field_FunctionBaseType<_ResultType(_Arguments...)> \
+    :__NOSTD_TYPE_FIELD_SET(is_function,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(is_member_function_pointer,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(result_type,_ResultType) \
+    ,__NOSTD_TYPE_FIELD_SET(class_type,_ClassType) \
+    ,__NOSTD_TYPE_FIELD_SET(argument_list,::std::tuple<_Arguments...>) \
+    ,__NOSTD_TYPE_FIELD_SET(has_c_style_va_list,::std::false_type) \
+    ,__NOSTD_TYPE_FIELD_SET(has_const,__C__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_volatile,__V__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_left_value_reference,__LVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_right_value_reference,__RVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_noexcept,__N__) \
+    ,__NOSTD_TYPE_FIELD_SET(function_base_type,_ResultType(_Arguments...)) \
 {}; \
 template< \
     typename _ResultType, \
@@ -141,18 +115,18 @@ template< \
 > \
 struct __FunctionTraits \
     <_ResultType(_ClassType::*)(_Arguments...,...)__EXT__> \
-    :__Field_IsFunction<::std::true_type> \
-    ,__Field_IsMemberFunctionPointer<::std::true_type> \
-    ,__Field_ResultType<_ResultType> \
-    ,__Field_ClassType<_ClassType> \
-    ,__Field_ArgumentList<::std::tuple<_Arguments...,::nostd::c_style_va_list_t>> \
-    ,__Field_HasCStyleVaList<::std::true_type> \
-    ,__Field_HasConst<__C__> \
-    ,__Field_HasVolatile<__V__> \
-    ,__Field_HasLeftValueReference<__LVR__> \
-    ,__Field_HasRightValueReference<__RVR__> \
-    ,__Field_HasNoexcept<__N__> \
-    ,__Field_FunctionBaseType<_ResultType(_Arguments...,...)> \
+    :__NOSTD_TYPE_FIELD_SET(is_function,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(is_member_function_pointer,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(result_type,_ResultType) \
+    ,__NOSTD_TYPE_FIELD_SET(class_type,_ClassType) \
+    ,__NOSTD_TYPE_FIELD_SET(argument_list,::std::tuple<_Arguments...,::nostd::c_style_va_list_t>) \
+    ,__NOSTD_TYPE_FIELD_SET(has_c_style_va_list,::std::true_type) \
+    ,__NOSTD_TYPE_FIELD_SET(has_const,__C__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_volatile,__V__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_left_value_reference,__LVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_right_value_reference,__RVR__) \
+    ,__NOSTD_TYPE_FIELD_SET(has_noexcept,__N__) \
+    ,__NOSTD_TYPE_FIELD_SET(function_base_type,_ResultType(_Arguments...,...)) \
 {}; \
 //
 /*
@@ -190,15 +164,76 @@ __NOSTD_FUNCTION_TRAITS(volatile&&noexcept      ,::std::false_type,::std::true_t
 __NOSTD_FUNCTION_TRAITS(const volatile&&noexcept,::std::true_type ,::std::true_type ,::std::false_type,::std::true_type ,::std::true_type )
 #undef __NOSTD_FUNCTION_TRAITS
 #undef __NOSTD_EMPTY_MACRO
+#undef __NOSTD_TYPE_FIELD_SET
 }
 namespace nostd{
-template<typename _Function>
-using function_traits_t=::nostd::function_traits::__FunctionTraits<
-    ::std::remove_cvref_t<
-        ::std::remove_pointer_t<
-            ::std::remove_cvref_t<_Function>
+template<typename _Type>
+static constexpr auto is_unmember_function_v=
+    ::std::is_function_v<::std::remove_cvref_t<_Type>>;
+template<typename _Type>
+static constexpr auto is_unmember_function_pointer_v=
+    ::std::is_pointer_v<::std::remove_cvref_t<_Type>>&&
+    ::nostd::is_unmember_function_v<
+        ::std::remove_pointer_t<::std::remove_cvref_t<_Type>>
+    >;
+template<typename _Type>
+static constexpr auto is_functor_v=requires{
+    ::std::remove_cvref_t<_Type>::operator();
+};
+template<typename _Type>
+static constexpr auto is_member_function_pointer_v=
+    ::std::is_member_function_pointer_v<::std::remove_cvref_t<_Type>>;
+template<typename _Type>
+static constexpr auto is_function_v=
+    ::nostd::is_unmember_function_v<_Type>||
+    ::nostd::is_unmember_function_pointer_v<_Type>||
+    ::nostd::is_functor_v<_Type>||
+    ::nostd::is_member_function_pointer_v<_Type>;
+}
+namespace nostd::function_traits{
+struct __GetFunctionCase0{
+    template<typename _Type>
+    struct Apply{
+        using type=::std::remove_pointer_t<::std::remove_cvref_t<_Type>>;
+    };
+};
+struct __GetFunctionCase1{
+    template<typename _Type>
+    struct Apply{
+        using type=decltype(&::std::remove_cvref_t<_Type>::operator());
+    };
+};
+struct __GetFunctionCase2{
+    template<typename _Type>
+    struct Apply{
+        using type=::std::remove_cvref_t<_Type>;
+    };
+};
+struct __GetFunctionCase3{
+    template<typename _Type>
+    struct Apply{
+        using type=_Type;
+    };
+};
+template<typename _Type>
+using __get_function_type=typename ::std::conditional_t<
+    ::nostd::is_unmember_function_pointer_v<_Type>,
+    __GetFunctionCase0,
+    ::std::conditional_t<
+        ::nostd::is_functor_v<_Type>,
+        __GetFunctionCase1,
+        ::std::conditional_t<
+            ::nostd::is_function_v<_Type>,
+            __GetFunctionCase2,
+            __GetFunctionCase3
         >
     >
+>::template Apply<_Type>::type;
+}
+namespace nostd{
+template<typename _Type>
+using function_traits_t=::nostd::function_traits::__FunctionTraits<
+    ::nostd::function_traits::__get_function_type<_Type>
 >;
 template<auto _function>
 using function_traits_of=::nostd::function_traits_t<decltype(_function)>;
