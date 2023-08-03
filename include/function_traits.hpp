@@ -235,6 +235,7 @@ template<typename _Type>
 using function_traits_t=::nostd::function_traits::__FunctionTraits<
     ::nostd::function_traits::__get_function_type<_Type>
 >;
-template<auto _function>
-using function_traits_of=::nostd::function_traits_t<decltype(_function)>;
+#define NOSTD_FUNCTION_TRAITS_OF(...) \
+    ::nostd::function_traits_t<decltype(__VA_ARGS__)> \
+//
 }
