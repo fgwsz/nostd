@@ -13,7 +13,7 @@ static void testFunctionTraitsT(void)noexcept{
     ::std::cout<<"is_functor                  :"<<::nostd::type_name<typename function_tt::is_functor                  >()<<"\n";
     ::std::cout<<"result_type                 :"<<::nostd::type_name<typename function_tt::result_type                 >()<<"\n";
     ::std::cout<<"class_type                  :"<<::nostd::type_name<typename function_tt::class_type                  >()<<"\n";
-    ::std::cout<<"argument_list               :"<<::nostd::type_name<typename function_tt::argument_list               >()<<"\n";
+    ::std::cout<<"parameter_list              :"<<::nostd::type_name<typename function_tt::parameter_list               >()<<"\n";
     ::std::cout<<"has_c_style_va_list         :"<<::nostd::type_name<typename function_tt::has_c_style_va_list         >()<<"\n";
     ::std::cout<<"has_const                   :"<<::nostd::type_name<typename function_tt::has_const                   >()<<"\n";
     ::std::cout<<"has_volatile                :"<<::nostd::type_name<typename function_tt::has_volatile                >()<<"\n";
@@ -35,7 +35,7 @@ static void testFunctionTraitsOf(_Type&& value)noexcept{
     ::std::cout<<"is_functor                  :"<<::nostd::type_name<typename function_tt::is_functor                  >()<<"\n";
     ::std::cout<<"result_type                 :"<<::nostd::type_name<typename function_tt::result_type                 >()<<"\n";
     ::std::cout<<"class_type                  :"<<::nostd::type_name<typename function_tt::class_type                  >()<<"\n";
-    ::std::cout<<"argument_list               :"<<::nostd::type_name<typename function_tt::argument_list               >()<<"\n";
+    ::std::cout<<"parameter_list              :"<<::nostd::type_name<typename function_tt::parameter_list               >()<<"\n";
     ::std::cout<<"has_c_style_va_list         :"<<::nostd::type_name<typename function_tt::has_c_style_va_list         >()<<"\n";
     ::std::cout<<"has_const                   :"<<::nostd::type_name<typename function_tt::has_const                   >()<<"\n";
     ::std::cout<<"has_volatile                :"<<::nostd::type_name<typename function_tt::has_volatile                >()<<"\n";
@@ -48,8 +48,10 @@ static void testFunctionTraitsOf(_Type&& value)noexcept{
 }
 static void testFunctionTraits(void){
     struct Foo{};
-    ::testFunctionTraitsT<int(*)(...)noexcept>();
-    ::testFunctionTraitsT<int(...)noexcept>();
-    ::testFunctionTraitsT<int(Foo::*)(...)const volatile&&noexcept>();
-    ::testFunctionTraitsOf([](...)noexcept->int{return 0;});
+    ::testFunctionTraitsT<int(*const volatile&&)(int const volatile&&,...)noexcept>();
+    ::testFunctionTraitsT<int(&)(int const volatile&&,...)>();
+    ::testFunctionTraitsT<int const volatile&&(int const volatile&&,...)const volatile&&noexcept>();
+    ::testFunctionTraitsT<int const volatile&&(&)(int const volatile&&,...)noexcept>();
+    ::testFunctionTraitsT<int(Foo::*const volatile&&)(int const volatile&&,...)const volatile&&noexcept>();
+    ::testFunctionTraitsOf([](int const volatile&&,...)noexcept->int{return 0;});
 }

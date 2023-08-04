@@ -1,6 +1,5 @@
 #pragma once
 #include<type_traits>
-#include<tuple>
 #include<cstdarg>
 namespace nostd{
 struct Undefined;
@@ -10,6 +9,8 @@ struct CStyleVaList{
     ::std::va_list start_;
 };
 using c_style_va_list_t=CStyleVaList;
+template<typename..._Types>
+struct ParameterList{};
 template<typename _Type>
 static constexpr auto is_unmember_function_v=
     ::std::is_function_v<::std::remove_cvref_t<_Type>>;
@@ -37,7 +38,7 @@ template<typename _FunctionType>
 struct __FunctionTraits{
     using result_type                 =::nostd::undefined_t;
     using class_type                  =::nostd::undefined_t;
-    using argument_list               =::nostd::undefined_t;
+    using parameter_list               =::nostd::undefined_t;
     using has_c_style_va_list         =::std::false_type;
     using has_const                   =::std::false_type;
     using has_volatile                =::std::false_type;
@@ -56,7 +57,7 @@ template< \
 struct __FunctionTraits<_ResultType(_Arguments...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =::nostd::undefined_t; \
-    using argument_list               =::std::tuple<_Arguments...>; \
+    using parameter_list               =::nostd::ParameterList<_Arguments...>; \
     using has_c_style_va_list         =::std::false_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
@@ -73,7 +74,7 @@ template< \
 struct __FunctionTraits<_ResultType(_Arguments...,...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =::nostd::undefined_t; \
-    using argument_list               =::std::tuple<_Arguments...,::nostd::c_style_va_list_t>; \
+    using parameter_list               =::nostd::ParameterList<_Arguments...,::nostd::c_style_va_list_t>; \
     using has_c_style_va_list         =::std::true_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
@@ -91,7 +92,7 @@ template< \
 struct __FunctionTraits<_ResultType(_ClassType::*)(_Arguments...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =_ClassType; \
-    using argument_list               =::std::tuple<_Arguments...>; \
+    using parameter_list               =::nostd::ParameterList<_Arguments...>; \
     using has_c_style_va_list         =::std::false_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
@@ -109,7 +110,7 @@ template< \
 struct __FunctionTraits<_ResultType(_ClassType::*)(_Arguments...,...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =_ClassType; \
-    using argument_list               =::std::tuple<_Arguments...,::nostd::c_style_va_list_t>; \
+    using parameter_list               =::nostd::ParameterList<_Arguments...,::nostd::c_style_va_list_t>; \
     using has_c_style_va_list         =::std::true_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
