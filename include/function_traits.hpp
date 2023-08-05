@@ -33,6 +33,21 @@ static constexpr auto is_function_v=
     ::nostd::is_unmember_function_pointer_v<_Type>||
     ::nostd::is_member_function_pointer_v<_Type>||
     ::nostd::is_functor_v<_Type>;
+template<typename _Type>
+using is_unmember_function=
+    ::std::bool_constant<::nostd::is_unmember_function_v<_Type>>;
+template<typename _Type>
+using is_unmember_function_pointer=
+    ::std::bool_constant<::nostd::is_unmember_function_pointer_v<_Type>>;
+template<typename _Type>
+using is_member_function_pointer=
+    ::std::bool_constant<::nostd::is_member_function_pointer_v<_Type>>;
+template<typename _Type>
+using is_functor=
+    ::std::bool_constant<::nostd::is_functor_v<_Type>>;
+template<typename _Type>
+using is_function=
+    ::std::bool_constant<::nostd::is_function_v<_Type>>;
 namespace function_traits{
 template<typename _FunctionType>
 struct __FunctionTraits{
@@ -52,73 +67,73 @@ struct __FunctionTraits{
 #define __NOSTD_FUNCTION_TRAITS(__EXT__,__C__,__V__,__LVR__,__RVR__,__N__) \
 template< \
     typename _ResultType, \
-    typename..._Arguments \
+    typename..._Parameters \
 > \
-struct __FunctionTraits<_ResultType(_Arguments...)__EXT__>{ \
+struct __FunctionTraits<_ResultType(_Parameters...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =::nostd::undefined_t; \
-    using parameter_list               =::nostd::ParameterList<_Arguments...>; \
+    using parameter_list               =::nostd::ParameterList<_Parameters...>; \
     using has_c_style_va_list         =::std::false_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
     using has_left_value_reference    =__LVR__; \
     using has_right_value_reference   =__RVR__; \
     using has_noexcept                =__N__; \
-    using function_base_type          =_ResultType(_Arguments...); \
-    using function_type               =_ResultType(_Arguments...)__EXT__; \
+    using function_base_type          =_ResultType(_Parameters...); \
+    using function_type               =_ResultType(_Parameters...)__EXT__; \
 }; \
 template< \
     typename _ResultType, \
-    typename..._Arguments \
+    typename..._Parameters \
 > \
-struct __FunctionTraits<_ResultType(_Arguments...,...)__EXT__>{ \
+struct __FunctionTraits<_ResultType(_Parameters...,...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =::nostd::undefined_t; \
-    using parameter_list               =::nostd::ParameterList<_Arguments...,::nostd::c_style_va_list_t>; \
+    using parameter_list               =::nostd::ParameterList<_Parameters...,::nostd::c_style_va_list_t>; \
     using has_c_style_va_list         =::std::true_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
     using has_left_value_reference    =__LVR__; \
     using has_right_value_reference   =__RVR__; \
     using has_noexcept                =__N__; \
-    using function_base_type          =_ResultType(_Arguments...,...); \
-    using function_type               =_ResultType(_Arguments...,...)__EXT__; \
+    using function_base_type          =_ResultType(_Parameters...,...); \
+    using function_type               =_ResultType(_Parameters...,...)__EXT__; \
 }; \
 template< \
     typename _ResultType, \
     typename _ClassType, \
-    typename..._Arguments \
+    typename..._Parameters \
 > \
-struct __FunctionTraits<_ResultType(_ClassType::*)(_Arguments...)__EXT__>{ \
+struct __FunctionTraits<_ResultType(_ClassType::*)(_Parameters...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =_ClassType; \
-    using parameter_list               =::nostd::ParameterList<_Arguments...>; \
+    using parameter_list               =::nostd::ParameterList<_Parameters...>; \
     using has_c_style_va_list         =::std::false_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
     using has_left_value_reference    =__LVR__; \
     using has_right_value_reference   =__RVR__; \
     using has_noexcept                =__N__; \
-    using function_base_type          =_ResultType(_Arguments...); \
-    using function_type               =_ResultType(_ClassType::*)(_Arguments...)__EXT__; \
+    using function_base_type          =_ResultType(_Parameters...); \
+    using function_type               =_ResultType(_ClassType::*)(_Parameters...)__EXT__; \
 }; \
 template< \
     typename _ResultType, \
     typename _ClassType, \
-    typename..._Arguments \
+    typename..._Parameters \
 > \
-struct __FunctionTraits<_ResultType(_ClassType::*)(_Arguments...,...)__EXT__>{ \
+struct __FunctionTraits<_ResultType(_ClassType::*)(_Parameters...,...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =_ClassType; \
-    using parameter_list               =::nostd::ParameterList<_Arguments...,::nostd::c_style_va_list_t>; \
+    using parameter_list               =::nostd::ParameterList<_Parameters...,::nostd::c_style_va_list_t>; \
     using has_c_style_va_list         =::std::true_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
     using has_left_value_reference    =__LVR__; \
     using has_right_value_reference   =__RVR__; \
     using has_noexcept                =__N__; \
-    using function_base_type          =_ResultType(_Arguments...,...); \
-    using function_type               =_ResultType(_ClassType::*)(_Arguments...,...)__EXT__; \
+    using function_base_type          =_ResultType(_Parameters...,...); \
+    using function_type               =_ResultType(_ClassType::*)(_Parameters...,...)__EXT__; \
 };
 /*
 __NOSTD_FUNCTION_TRAITS(__EXT__                 ,__C__            ,__V__            ,__LVR__          ,__RVR__          ,__N__            )
@@ -191,11 +206,11 @@ struct FunctionTraits
     :public ::nostd::function_traits::__FunctionTraits<
         ::nostd::function_traits::__get_argument_t<_Type>
     >{
-    using is_function                 =::std::bool_constant<::nostd::is_function_v<_Type>>;
-    using is_unmember_function        =::std::bool_constant<::nostd::is_unmember_function_v<_Type>>;
-    using is_unmember_function_pointer=::std::bool_constant<::nostd::is_unmember_function_pointer_v<_Type>>;
-    using is_member_function_pointer  =::std::bool_constant<::nostd::is_member_function_pointer_v<_Type>>;
-    using is_functor                  =::std::bool_constant<::nostd::is_functor_v<_Type>>;
+    using is_function                 =::nostd::is_function<_Type>;
+    using is_unmember_function        =::nostd::is_unmember_function<_Type>;
+    using is_unmember_function_pointer=::nostd::is_unmember_function_pointer<_Type>;
+    using is_member_function_pointer  =::nostd::is_member_function_pointer<_Type>;
+    using is_functor                  =::nostd::is_functor<_Type>;
     using raw_type                    =_Type;
 };
 template<typename _Type>
