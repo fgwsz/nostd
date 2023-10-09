@@ -4,3 +4,4 @@
 #include"nostd_template_wrapper.hpp"
 #include"nostd_operator.hpp"
 #include"nostd_static_string.hpp"
+#include"nostd_get_bit_string.hpp"
