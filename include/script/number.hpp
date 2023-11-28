@@ -16,90 +16,90 @@ public:
     }
     Number(signed short int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(unsigned short int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(signed int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(unsigned int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(signed long int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(unsigned long int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(signed long long int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(unsigned long long int value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(float value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
     Number(double value)
         :Number(){
-        (*this)=value;
+        *this=value;
     }
-    Number(Number const& value)
+    Number(Number const& number)
         :Number(){
-        (*this)=value;
+        *this=number;
     }
     Number& operator=(signed short int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(unsigned short int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(signed int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(unsigned int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(signed long int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(unsigned long int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(signed long long int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(unsigned long long int value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(float value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
     Number& operator=(double value){
-        this->data_=static_cast<data_type>(value);
+        this->data_=static_cast<typename Number::data_type>(value);
         return *this;
     }
-    Number& operator=(Number const& value){
-        (*this)=value->data_;
+    Number& operator=(Number const& number){
+        *this=number.data_;
         return *this;
     }
     explicit operator signed short int() const{
@@ -132,49 +132,149 @@ public:
     explicit operator double() const{
         return static_cast<double>(this->data_);
     }
-    data_type& data(){
+    bool operator==(Number const& number) const{
+        return this->data_==number.data_;
+    }
+    bool operator!=(Number const& number) const{
+        return this->data_!=number.data_;
+    }
+    bool operator<(Number const& number) const{
+        return this->data_<number.data_;
+    }
+    bool operator>(Number const& number) const{
+        return this->data_>number.data_;
+    }
+    bool operator<=(Number const& number) const{
+        return this->data_<=number.data_;
+    }
+    bool operator>=(Number const& number) const{
+        return this->data_>=number.data_;
+    }
+    Number operator+(Number const& number) const{
+        return this->data_+number.data_;
+    }
+    Number operator-(Number const& number) const{
+        return this->data_-number.data_;
+    }
+    Number operator*(Number const& number) const{
+        return this->data_*number.data_;
+    }
+    Number operator/(Number const& number) const{
+        return this->data_/number.data_;
+    }
+    Number operator%(Number const& number) const{
+        return ::fmod(this->data_,number.data_);
+    }
+    Number operator^(Number const& number) const{
+        return ::pow(this->data_,number.data_);
+    }
+    Number operator+() const{
+        return +(this->data_);
+    }
+    Number operator-() const{
+        return -(this->data_);
+    }
+    Number& operator+=(Number const& number){
+        return (*this)=(*this)+number;
+    }
+    Number& operator-=(Number const& number){
+        return (*this)=(*this)-number;
+    }
+    Number& operator*=(Number const& number){
+        return (*this)=(*this)*number;
+    }
+    Number& operator/=(Number const& number){
+        return (*this)=(*this)/number;
+    }
+    Number& operator%=(Number const& number){
+        return (*this)=(*this)%number;
+    }
+    Number& operator^=(Number const& number){
+        return (*this)=(*this)^number;
+    }
+    Number& operator++(){
+        return (*this)+=1;
+    }
+    Number& operator--(){
+        return (*this)-=1;
+    }
+    Number operator++(int){
+        Number ret=*this;
+        ++(*this);
+        return ret;
+    }
+    Number operator--(int){
+        Number ret=*this;
+        --(*this);
+        return ret;
+    }
+    typename Number::data_type& data(){
         return this->data_;
     }
-    static data_type min_value(){
+    typename Number::data_type const& const_data() const{
+        return this->data_;
+    }
+    static Number min_value(){
         return DBL_MIN;
     }
-    static data_type max_value(){
+    static Number max_value(){
         return DBL_MAX;
     }
+    static Number floor(Number const& number){
+        return ::floor(number.data_);
+    }
+    static Number ceil(Number const& number){
+        return ::ceil(number.data_);
+    }
+    static Number integer(Number const& number){
+        return number>=0
+            ?Number::floor(number)
+            :Number::ceil(number);
+    }
+    static Number min(Number const& number_1,Number const& number_2){
+        return ::fmin(number_1.const_data(),number_2.const_data());
+    }
+    static Number max(Number const& number_1,Number const& number_2){
+        return ::fmax(number_1.const_data(),number_2.const_data());
+    }
+    static Number abs(Number const& number){
+        return ::fabs(number.const_data());
+    }
+    static Number difference(Number const& number_1,Number const& number_2){
+        return Number::abs(number_1-number_2);
+    }
     bool is_integer() const{
-        return this->data_==this->data_>=0
-            ?::floor(this->data_)
-            :::ceil(this->data_);
+        return (*this)==Number::integer(*this);
     }
     bool is_signed_short_int() const{
-        return this->is_integer()&&this->data_>=SHRT_MIN&&this->data_<=SHRT_MAX;
+        return this->is_integer()&&(*this)>=SHRT_MIN&&(*this)<=SHRT_MAX;
     }
     bool is_unsigned_short_int() const{
-        return this->is_integer()&&this->data_>=0&&this->data_<=USHRT_MAX;
+        return this->is_integer()&&(*this)>=0&&(*this)<=USHRT_MAX;
     }
     bool is_signed_int() const{
-        return this->is_integer()&&this->data_>=INT_MIN&&this->data_<=INT_MAX;
+        return this->is_integer()&&(*this)>=INT_MIN&&(*this)<=INT_MAX;
     }
     bool is_unsigned_int() const{
-        return this->is_integer()&&this->data_>=0&&this->data_<=UINT_MAX;
+        return this->is_integer()&&(*this)>=0&&(*this)<=UINT_MAX;
     }
     bool is_signed_long_int() const{
-        return this->is_integer()&&this->data_>=LONG_MIN&&this->data_<=LONG_MAX;
+        return this->is_integer()&&(*this)>=LONG_MIN&&(*this)<=LONG_MAX;
     }
     bool is_unsigned_long_int() const{
-        return this->is_integer()&&this->data_>=0&&this->data_<=ULONG_MAX;
+        return this->is_integer()&&(*this)>=0&&(*this)<=ULONG_MAX;
     }
     bool is_signed_long_long_int() const{
-        return this->is_integer()&&this->data_>=LLONG_MIN&&this->data_<=LLONG_MAX;
+        return this->is_integer()&&(*this)>=LLONG_MIN&&(*this)<=LLONG_MAX;
     }
     bool is_unsigned_long_long_int() const{
-        return this->is_integer()&&this->data_>=0&&this->data_<=ULLONG_MAX;
+        return this->is_integer()&&(*this)>=0&&(*this)<=ULLONG_MAX;
     }
     bool is_float() const{
-        return this->data_>=FLT_MIN&&this->data_<=FLT_MAX;
+        return (*this)>=FLT_MIN&&(*this)<=FLT_MAX;
     }
     bool is_double() const{
-        return this->data_>=DBL_MIN&&this->data_<=DBL_MAX;
+        return (*this)>=DBL_MIN&&(*this)<=DBL_MAX;
     }
     bool to_signed_short_int(signed short int& reference) const{
         if(this->is_signed_short_int()){
@@ -296,41 +396,9 @@ public:
             ?static_cast<double>(*this)
             :0;
     }
-    bool operator==(Number const& number) const{
-        return this->data_==number.data_;
-    }
-    bool operator!=(Number const& number) const{
-        return this->data_!=number.data_;
-    }
-    bool operator<(Number const& number) const{
-        return this->data_<number.data_;
-    }
-    bool operator>(Number const& number) const{
-        return this->data_>number.data_;
-    }
-    bool operator<=(Number const& number) const{
-        return this->data_<=number.data_;
-    }
-    bool operator>=(Number const& number) const{
-        return this->data_>=number.data_;
-    }
-    Number operator+(Number const& number) const{
-        return this->data_+number.data_;
-    }
-    Number operator-(Number const& number) const{
-        return this->data_-number.data_;
-    }
-    Number operator*(Number const& number) const{
-        return this->data_*number.data_;
-    }
-    Number operator/(Number const& number) const{
-        return this->data_/number.data_;
-    }
-    Number operator%(Number const& number) const{
-        if(this->is_unsigned_long_long_int()&&number.is_unsigned_long_long_int()){
-            return this->to_unsigned_long_long_int()%number.to_unsigned_long_long_int();
-        }
-        return ::fmod(this->data_,number.data_);
+    template<typename OutputStream>
+    friend OutputStream& operator<<(OutputStream& os,Number const& number){
+        return os<<number.const_data();
     }
 }; // class Number
 } // namespace script
