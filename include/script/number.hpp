@@ -132,23 +132,19 @@ public:
     explicit operator double() const{
         return static_cast<double>(this->data_);
     }
-    data_type get_value() const{
-        return this->data_;
-    }
-    void set_value(data_type value){
-        this->data_=value;
-    }
     data_type& data(){
         return this->data_;
     }
-    data_type min_value() const{
+    static data_type min_value(){
         return DBL_MIN;
     }
-    data_type max_value() const{
+    static data_type max_value(){
         return DBL_MAX;
     }
     bool is_integer() const{
-        return this->data_==::fabs(this->data_);
+        return this->data_==this->data_>=0
+            ?::floor(this->data_)
+            :::ceil(this->data_);
     }
     bool is_signed_short_int() const{
         return this->is_integer()&&this->data_>=SHRT_MIN&&this->data_<=SHRT_MAX;
@@ -299,6 +295,42 @@ public:
         return this->is_double()
             ?static_cast<double>(*this)
             :0;
+    }
+    bool operator==(Number const& number) const{
+        return this->data_==number.data_;
+    }
+    bool operator!=(Number const& number) const{
+        return this->data_!=number.data_;
+    }
+    bool operator<(Number const& number) const{
+        return this->data_<number.data_;
+    }
+    bool operator>(Number const& number) const{
+        return this->data_>number.data_;
+    }
+    bool operator<=(Number const& number) const{
+        return this->data_<=number.data_;
+    }
+    bool operator>=(Number const& number) const{
+        return this->data_>=number.data_;
+    }
+    Number operator+(Number const& number) const{
+        return this->data_+number.data_;
+    }
+    Number operator-(Number const& number) const{
+        return this->data_-number.data_;
+    }
+    Number operator*(Number const& number) const{
+        return this->data_*number.data_;
+    }
+    Number operator/(Number const& number) const{
+        return this->data_/number.data_;
+    }
+    Number operator%(Number const& number) const{
+        if(this->is_unsigned_long_long_int()&&number.is_unsigned_long_long_int()){
+            return this->to_unsigned_long_long_int()%number.to_unsigned_long_long_int();
+        }
+        return ::fmod(this->data_,number.data_);
     }
 }; // class Number
 } // namespace script
