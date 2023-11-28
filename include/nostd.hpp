@@ -6,3 +6,4 @@
 #include"nostd_static_string.hpp"
 #include"nostd_get_bit_string.hpp"
 #include"script/number.hpp"
+#include"script/boolean.hpp"

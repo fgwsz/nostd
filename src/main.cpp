@@ -16,5 +16,10 @@ int main(void){
     num_2*=3;
     ::std::cout<<num_2<<::std::endl;
     ::std::cout<<number_t::difference(-300,-200)<<::std::endl;
+    script::Boolean b;
+    if(b)
+        ::std::cout<<script::True<<::std::endl;
+    else
+        ::std::cout<<b<<::std::endl;
     return 0;
 }
