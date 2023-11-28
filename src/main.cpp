@@ -21,5 +21,8 @@ int main(void){
         ::std::cout<<script::True<<::std::endl;
     else
         ::std::cout<<b<<::std::endl;
+    script::U8Char u8char("你好世界");
+    ::std::cout<<"u8char.data()="<<u8char<<::std::endl;
+    ::std::cout<<"u8char.byte_size()="<<number_t(u8char.byte_size())<<::std::endl;
     return 0;
 }
