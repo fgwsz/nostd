@@ -24,5 +24,20 @@ int main(void){
     script::U8Char u8char("你好世界");
     ::std::cout<<"u8char.data()="<<u8char<<::std::endl;
     ::std::cout<<"u8char.byte_size()="<<number_t(u8char.byte_size())<<::std::endl;
+    using array_t=script::_Array<int>;
+    array_t array;
+    for(auto count=0;count<30;++count){
+        array.set_element(count,2*count);
+    }
+    ::std::cout<<array<<::std::endl;
+    array={1,2,3};
+    ::std::cout<<array<<::std::endl;
+    int carr[6]{4,5,6,7,8,9};
+    array=carr;
+    ::std::cout<<array<<::std::endl;
+    array.insert_element(3,0);
+    ::std::cout<<array<<::std::endl;
+    array.erase_element(3);
+    ::std::cout<<array<<::std::endl;
     return 0;
 }

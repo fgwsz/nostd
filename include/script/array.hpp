@@ -4,6 +4,7 @@ extern "C"{
 #include<stdlib.h>
 #include<string.h>
 } // extern "C"
+#include<initializer_list>
 namespace script{
 template<typename _Type>
 struct _Element{
@@ -29,7 +30,7 @@ public:
         return this->size_;
     }
 private:
-    constexpr void auto_expand_capacity()const noexcept{
+    constexpr void auto_expand_capacity()noexcept{
         if(this->size_<this->capacity_){
             return;
         }
@@ -119,6 +120,59 @@ public:
     constexpr ~_Array()noexcept{
         this->clear();
         ::free(this->data_);
+    }
+    template<typename OutputStream>
+    friend constexpr OutputStream& operator<<(OutputStream& os,_Array<_Type>const& array)noexcept{
+        os<<'[';
+        for(size_t index=0;index<array.size();++index){
+            os<<array[index]<<(index+1!=array.size()?",":"");
+        }
+        return os<<']';
+    }
+    constexpr bool operator==(_Array<_Type> const& array)const noexcept{
+        if(this==&array){
+            return true;
+        }
+        if(this->size_!=array.size_){
+            return false;
+        }
+        for(size_t index=0;index<array.size_;++index){
+            if((*this)[index]!=array[index]){
+                return false;
+            }
+        }
+        return true;
+    }
+    constexpr bool operator!=(_Array<_Type> const& array)const noexcept{
+        return !((*this)==array);
+    }
+    constexpr _Array<_Type>(::std::initializer_list<_Type> const& list)noexcept
+        :_Array<_Type>(){
+        (*this)=list;
+    }
+    constexpr _Array<_Type>& operator=(::std::initializer_list<_Type> const& list)noexcept{
+        while(this->size_>list.size()){
+            this->pop_back();
+        }
+        for(size_t index=0;index<list.size();++index){
+            this->set_element(index,*(list.begin()+index));
+        }
+        return *this;
+    }
+    template<size_t _size>
+    constexpr _Array<_Type>(_Type const(&array)[_size])noexcept
+        :_Array<_Type>(){
+        (*this)=array;
+    }
+    template<size_t _size>
+    constexpr _Array<_Type>& operator=(_Type const(&array)[_size])noexcept{
+        while(this->size_>_size){
+            this->pop_back();
+        }
+        for(size_t index=0;index<_size;++index){
+            this->set_element(index,array[index]);
+        }
+        return *this;
     }
 }; // class Array
 } // namespace script
