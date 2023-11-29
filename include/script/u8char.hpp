@@ -3,18 +3,18 @@ extern "C"{
 #include<stdint.h>
 } // extern "C"
 namespace script{
-constexpr unsigned char const u8char_1byte_head_byte_begin     =0b00000000;
-constexpr unsigned char const u8char_1byte_head_byte_finish    =0b01111111;
-constexpr unsigned char const u8char_2byte_head_byte_begin     =0b11000000;
-constexpr unsigned char const u8char_2byte_head_byte_finish    =0b11011111;
-constexpr unsigned char const u8char_3byte_head_byte_begin     =0b11100000;
-constexpr unsigned char const u8char_3byte_head_byte_finish    =0b11101111;
-constexpr unsigned char const u8char_4byte_head_byte_begin     =0b11110000;
-constexpr unsigned char const u8char_4byte_head_byte_finish    =0b11110111;
-constexpr unsigned char const u8char_multibyte_tail_byte_begin =0b10000000;
-constexpr unsigned char const u8char_multibyte_tail_byte_finish=0b10111111;
 class U8Char final{
 public:
+    static constexpr unsigned char const u8char_1byte_head_byte_begin_     =0b00000000;
+    static constexpr unsigned char const u8char_1byte_head_byte_finish_    =0b01111111;
+    static constexpr unsigned char const u8char_2byte_head_byte_begin_     =0b11000000;
+    static constexpr unsigned char const u8char_2byte_head_byte_finish_    =0b11011111;
+    static constexpr unsigned char const u8char_3byte_head_byte_begin_     =0b11100000;
+    static constexpr unsigned char const u8char_3byte_head_byte_finish_    =0b11101111;
+    static constexpr unsigned char const u8char_4byte_head_byte_begin_     =0b11110000;
+    static constexpr unsigned char const u8char_4byte_head_byte_finish_    =0b11110111;
+    static constexpr unsigned char const u8char_multibyte_tail_byte_begin_ =0b10000000;
+    static constexpr unsigned char const u8char_multibyte_tail_byte_finish_=0b10111111;
     static constexpr unsigned char const max_byte_size_=4;
     using data_type=unsigned char[U8Char::max_byte_size_];
 private:
@@ -42,17 +42,17 @@ public:
         }
         unsigned char head_byte=(unsigned char)(value[0]);
         unsigned char byte_size=0;
-        if(head_byte>=u8char_1byte_head_byte_begin&&
-           head_byte<=u8char_1byte_head_byte_finish){
+        if(head_byte>=U8Char::u8char_1byte_head_byte_begin_&&
+           head_byte<=U8Char::u8char_1byte_head_byte_finish_){
             byte_size=1;
-        }else if(head_byte>=u8char_2byte_head_byte_begin&&
-                 head_byte<=u8char_2byte_head_byte_finish){
+        }else if(head_byte>=U8Char::u8char_2byte_head_byte_begin_&&
+                 head_byte<=U8Char::u8char_2byte_head_byte_finish_){
             byte_size=2;
-        }else if(head_byte>=u8char_3byte_head_byte_begin&&
-                 head_byte<=u8char_3byte_head_byte_finish){
+        }else if(head_byte>=U8Char::u8char_3byte_head_byte_begin_&&
+                 head_byte<=U8Char::u8char_3byte_head_byte_finish_){
             byte_size=3;
-        }else if(head_byte>=u8char_4byte_head_byte_begin&&
-                 head_byte<=u8char_4byte_head_byte_finish){
+        }else if(head_byte>=U8Char::u8char_4byte_head_byte_begin_&&
+                 head_byte<=U8Char::u8char_4byte_head_byte_finish_){
             byte_size=4;
         }
         if(!byte_size){
@@ -62,8 +62,8 @@ public:
             unsigned char tail_byte=0;
             for(unsigned char index=1;index<byte_size;++index){
                 tail_byte=(unsigned char)(value[index]);
-                if(!(tail_byte>=u8char_multibyte_tail_byte_begin&&
-                     tail_byte<=u8char_multibyte_tail_byte_finish)){
+                if(!(tail_byte>=U8Char::u8char_multibyte_tail_byte_begin_&&
+                     tail_byte<=U8Char::u8char_multibyte_tail_byte_finish_)){
                     return *this;
                 }
             }
@@ -78,7 +78,11 @@ public:
         return *this;
     }
     constexpr U8Char& operator=(U8Char const& u8char)noexcept{
-        return (*this)=(char const*)(void*)(u8char.data_);
+        if(this!=&u8char){
+            this->data_number_=u8char.data_number_;
+            this->byte_size_=u8char.byte_size_;
+        }
+        return *this;
     }
     constexpr unsigned char byte_size()const noexcept{
         return this->byte_size_;
@@ -125,4 +129,5 @@ public:
         return os;
     }
 }; // class U8Char
+constexpr U8Char const U8CharEmpty{}; // "\0"
 } // namespace script
