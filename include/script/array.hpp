@@ -35,7 +35,7 @@ private:
         }
         size_t new_capacity=this->capacity_*2;
         _Element<_Type>* new_data=(_Element<_Type>*)::malloc(sizeof(_Element<_Type>)*new_capacity);
-        ::memmove(new_data,this->data_,this->size_*sizeof(_Element<Type>));
+        ::memmove(new_data,this->data_,this->size_*sizeof(_Element<_Type>));
         ::free(this->data_);
         this->data_=new_data;
         this->capacity_=new_capacity;
