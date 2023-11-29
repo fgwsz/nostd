@@ -8,3 +8,4 @@
 #include"script/number.hpp"
 #include"script/boolean.hpp"
 #include"script/u8char.hpp"
+#include"script/array.hpp"

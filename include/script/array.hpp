@@ -22,13 +22,6 @@ public:
         this->capacity_=_Array::default_capacity_;
         this->size_=0;
     }
-    constexpr ~_Array<_Type>()noexcept{
-        for(size_t index=0;index<this->size_;++index){
-            ((this->data_[index]).pointer_)->~_Type();
-            ::free((this->data_[index]).pointer_);
-        }
-        ::free(this->data_);
-    }
     constexpr size_t capacity()const noexcept{
         return this->capacity_;
     }
@@ -42,7 +35,7 @@ private:
         }
         size_t new_capacity=this->capacity_*2;
         _Element<_Type>* new_data=(_Element<_Type>*)::malloc(sizeof(_Element<_Type>)*new_capacity);
-        ::memmove(new_data,this->data_,this->size_);
+        ::memmove(new_data,this->data_,this->size_*sizeof(_Element<Type>));
         ::free(this->data_);
         this->data_=new_data;
         this->capacity_=new_capacity;
@@ -53,7 +46,7 @@ public:
             return false;
         }
         this->auto_expand_capacity();
-        ::memmove(this->data_+index+1,this->data_+index,this->size_-index);
+        ::memmove(this->data_+index+1,this->data_+index,(this->size_-index)*sizeof(_Element<_Type>));
         (this->data_[index]).pointer_=(_Type*)::malloc(sizeof(_Type));
         new((this->data_[index]).pointer_)_Type(value);
         ++(this->size_);
@@ -65,7 +58,7 @@ public:
         }
         ((this->data_[index]).pointer_)->~_Type();
         ::free((this->data_[index]).pointer_);
-        ::memmove(this->data_+index,this->data_+index+1,this->size_-index-1);
+        ::memmove(this->data_+index,this->data_+index+1,(this->size_-index-1)*sizeof(_Element<_Type>));
         --(this->size_);
         return true;
     }
@@ -96,11 +89,36 @@ public:
         :_Array<_Type>(){
         (*this)=array;
     }
+    constexpr bool empty()const noexcept{
+        return this->size_==0;
+    }
+    constexpr void push_back(_Type const& value)noexcept{
+        this->insert_element(this->size_,value);
+    }
+    constexpr void pop_back()noexcept{
+        if(!this->empty()){
+            this->erase_element(this->size_-1);
+        }
+    }
     constexpr _Array<_Type>& operator=(_Array<_Type> const& array)noexcept{
         if(this!=&array){
-            //TODO
+            while(this->size_>array.size_){
+                this->pop_back();
+            }
+            for(size_t index=0;index<array.size_;++index){
+                this->set_element(index,array[index]);
+            }
         }
         return *this;
+    }
+    constexpr void clear()noexcept{
+        while(!this->empty()){
+            this->pop_back();
+        }
+    }
+    constexpr ~_Array()noexcept{
+        this->clear();
+        ::free(this->data_);
     }
 }; // class Array
 } // namespace script
