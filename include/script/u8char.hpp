@@ -3,16 +3,16 @@ extern "C"{
 #include<stdint.h>
 } // extern "C"
 namespace script{
-constexpr unsigned char const u8_1byte_head_byte_begin     =0b00000000;
-constexpr unsigned char const u8_1byte_head_byte_finish    =0b01111111;
-constexpr unsigned char const u8_2byte_head_byte_begin     =0b11000000;
-constexpr unsigned char const u8_2byte_head_byte_finish    =0b11011111;
-constexpr unsigned char const u8_3byte_head_byte_begin     =0b11100000;
-constexpr unsigned char const u8_3byte_head_byte_finish    =0b11101111;
-constexpr unsigned char const u8_4byte_head_byte_begin     =0b11110000;
-constexpr unsigned char const u8_4byte_head_byte_finish    =0b11110111;
-constexpr unsigned char const u8_multibyte_tail_byte_begin =0b10000000;
-constexpr unsigned char const u8_multibyte_tail_byte_finish=0b10111111;
+constexpr unsigned char const u8char_1byte_head_byte_begin     =0b00000000;
+constexpr unsigned char const u8char_1byte_head_byte_finish    =0b01111111;
+constexpr unsigned char const u8char_2byte_head_byte_begin     =0b11000000;
+constexpr unsigned char const u8char_2byte_head_byte_finish    =0b11011111;
+constexpr unsigned char const u8char_3byte_head_byte_begin     =0b11100000;
+constexpr unsigned char const u8char_3byte_head_byte_finish    =0b11101111;
+constexpr unsigned char const u8char_4byte_head_byte_begin     =0b11110000;
+constexpr unsigned char const u8char_4byte_head_byte_finish    =0b11110111;
+constexpr unsigned char const u8char_multibyte_tail_byte_begin =0b10000000;
+constexpr unsigned char const u8char_multibyte_tail_byte_finish=0b10111111;
 class U8Char final{
 public:
     static constexpr unsigned char const max_byte_size_=4;
@@ -25,9 +25,7 @@ private:
     unsigned char byte_size_;
 public:
     constexpr U8Char()noexcept{
-        for(auto& byte:this->data_){
-            byte=0;
-        }
+        this->data_number_=0;
         this->byte_size_=1;
     }
     constexpr U8Char(char const* value)noexcept
@@ -44,17 +42,17 @@ public:
         }
         unsigned char head_byte=(unsigned char)(value[0]);
         unsigned char byte_size=0;
-        if(head_byte>=u8_1byte_head_byte_begin&&
-           head_byte<=u8_1byte_head_byte_finish){
+        if(head_byte>=u8char_1byte_head_byte_begin&&
+           head_byte<=u8char_1byte_head_byte_finish){
             byte_size=1;
-        }else if(head_byte>=u8_2byte_head_byte_begin&&
-                 head_byte<=u8_2byte_head_byte_finish){
+        }else if(head_byte>=u8char_2byte_head_byte_begin&&
+                 head_byte<=u8char_2byte_head_byte_finish){
             byte_size=2;
-        }else if(head_byte>=u8_3byte_head_byte_begin&&
-                 head_byte<=u8_3byte_head_byte_finish){
+        }else if(head_byte>=u8char_3byte_head_byte_begin&&
+                 head_byte<=u8char_3byte_head_byte_finish){
             byte_size=3;
-        }else if(head_byte>=u8_4byte_head_byte_begin&&
-                 head_byte<=u8_4byte_head_byte_finish){
+        }else if(head_byte>=u8char_4byte_head_byte_begin&&
+                 head_byte<=u8char_4byte_head_byte_finish){
             byte_size=4;
         }
         if(!byte_size){
@@ -64,8 +62,8 @@ public:
             unsigned char tail_byte=0;
             for(unsigned char index=1;index<byte_size;++index){
                 tail_byte=(unsigned char)(value[index]);
-                if(!(tail_byte>=u8_multibyte_tail_byte_begin&&
-                     tail_byte<=u8_multibyte_tail_byte_finish)){
+                if(!(tail_byte>=u8char_multibyte_tail_byte_begin&&
+                     tail_byte<=u8char_multibyte_tail_byte_finish)){
                     return *this;
                 }
             }
@@ -98,19 +96,26 @@ public:
         return this->data_number_==u8char.data_number_;
     }
     constexpr bool operator!=(U8Char const& u8char)const noexcept{
-        return this->data_number_!=u8char.data_number_;
+        return !((*this)==u8char);
     }
     constexpr bool operator<(U8Char const& u8char)const noexcept{
-        return this->data_number_<u8char.data_number_;
+        if(this->data_number_!=u8char.data_number_){
+            for(unsigned char index=0;index<this->byte_size_;++index){
+                if(this->data_[index]!=u8char.data_[index]){
+                    return this->data_[index]<u8char.data_[index];
+                }
+            }
+        }
+        return false;
     }
     constexpr bool operator>(U8Char const& u8char)const noexcept{
-        return this->data_number_>u8char.data_number_;
+        return u8char<(*this);
     }
     constexpr bool operator<=(U8Char const& u8char)const noexcept{
-        return this->data_number_<=u8char.data_number_;
+        return !(u8char<(*this));
     }
     constexpr bool operator>=(U8Char const& u8char)const noexcept{
-        return this->data_number_>=u8char.data_number_;
+        return !((*this)<u8char);
     }
     template<typename OutputStream>
     friend constexpr OutputStream& operator<<(OutputStream& os,U8Char const& u8char)noexcept{
