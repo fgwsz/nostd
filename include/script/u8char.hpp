@@ -128,6 +128,8 @@ public:
         }
         return os;
     }
+    constexpr bool empty()const noexcept{
+        return (*this)=="";
+    }
 }; // class U8Char
-constexpr U8Char const U8CharEmpty{}; // "\0"
 } // namespace script
