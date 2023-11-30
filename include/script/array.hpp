@@ -174,5 +174,35 @@ public:
         }
         return *this;
     }
+    constexpr bool reserve_capacity(size_t capacity)noexcept{
+        // TODO
+    }
+    constexpr void shrink_to_fit()noexcept{
+        // TODO
+    }
+    constexpr void resize(size_t size)noexcept{
+        // TODO
+    }
+    constexpr size_t max_size()const noexcept{
+        // TODO
+    }
+    constexpr void swap(_Array<_Type>& array)noexcept{
+        // TODO
+    }
+    constexpr bool insert_element_n(size_t index,_Type const& value,size_t count)noexcept{
+        // TODO
+    }
+    constexpr bool erase_element_n(size_t index,size_t count)noexcept{
+        // TODO
+    }
+    constexpr bool insert_array(size_t index,_Array<_Type> const& array)noexcept{
+        // TODO
+    }
+    constexpr _Array<_Type> operator+(_Array<_Type> const& array)const noexcept{
+        // TODO
+    }
+    constexpr _Array<_Type>& operator+=(_Array<_Type> const& array)noexcept{
+        // TODO
+    }
 }; // class Array
 } // namespace script

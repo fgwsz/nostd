@@ -62,5 +62,11 @@ public:
     constexpr U8String& operator+=(U8String const& u8string)noexcept{
         return (*this)=(*this)+u8string;
     }
+    constexpr bool insert(size_t index,U8Char const& u8char)noexcept{
+        return this->data_.insert_element(u8char);
+    }
+    constexpr bool erase(size_t index)noexcept{
+        return this->data_.erase_element(index);
+    }
 }; // class U8String
 }// namespace script
