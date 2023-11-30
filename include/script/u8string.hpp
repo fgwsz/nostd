@@ -3,7 +3,9 @@
 #include"array.hpp"
 namespace script{
 class U8String{
+private:
     _Array<U8Char> data_;
+public:
     constexpr U8String()noexcept{
         this->data_=_Array<U8Char>();
     }
@@ -42,6 +44,23 @@ class U8String{
     }
     constexpr U8Char const& operator[](size_t index)const noexcept{
         return this->data_[index];
+    }
+    template<typename OutputStream>
+    friend constexpr OutputStream& operator<<(OutputStream& os,U8String const& u8string)noexcept{
+        for(size_t index=0;index<u8string.size();++index){
+            os<<u8string[index];
+        }
+        return os;
+    }
+    constexpr U8String operator+(U8String const& u8string)const noexcept{
+        U8String ret(*this);
+        for(size_t index=0;index<u8string.size();++index){
+            ret.data_.push_back(u8string[index]);
+        }
+        return ret;
+    }
+    constexpr U8String& operator+=(U8String const& u8string)noexcept{
+        return (*this)=(*this)+u8string;
     }
 }; // class U8String
 }// namespace script
