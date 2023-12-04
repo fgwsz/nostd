@@ -129,6 +129,21 @@ public:
         }
         return os<<']';
     }
+    template<typename OutputStream>
+    constexpr OutputStream& debug_print(OutputStream& os)const noexcept{
+        os<<"+++++ARRAY BEGIN+++++\n"
+          <<"data_:"<<this->data_<<'\n'
+          <<"size_:"<<this->size_<<'\n'
+          <<"capacity_:"<<this->capacity_<<'\n'
+          <<"elemnts:\n";
+        for(size_t index=0;index<this->size_;++index){
+            os<<"-----ELEMENT "<<index<<" BEGIN-----\n"
+              <<"pointer_:"<<(this->data_[index]).pointer_<<'\n'
+              <<"value:"<<*((this->data_[index]).pointer_)<<'\n'
+              <<"-----ELEMENT "<<index<<" END-----\n";
+        }
+        return os<<"+++++ARRAY END+++++\n";
+    }
     constexpr bool operator==(_Array<_Type> const& array)const noexcept{
         if(this==&array){
             return true;
@@ -174,35 +189,95 @@ public:
         }
         return *this;
     }
-    constexpr bool reserve_capacity(size_t capacity)noexcept{
-        // TODO
+    constexpr void reserve_capacity(size_t capacity)noexcept{
+        if(capacity>this->capacity_){
+            _Element<_Type>* new_data=(_Element<_Type>*)::malloc(sizeof(_Element<_Type>)*capacity);
+            ::memmove(new_data,this->data_,this->size_*sizeof(_Element<_Type>));
+            ::free(this->data_);
+            this->data_=new_data;
+            this->capacity_=capacity;
+        }
     }
     constexpr void shrink_to_fit()noexcept{
-        // TODO
-    }
-    constexpr void resize(size_t size)noexcept{
-        // TODO
+        if(this->capacity_>this->size_){
+            _Element<_Type>* new_data=(_Element<_Type>*)::malloc(sizeof(_Element<_Type>)*this->size_);
+            ::memmove(new_data,this->data_,this->size_*sizeof(_Element<_Type>));
+            ::free(this->data_);
+            this->data_=new_data;
+            this->capacity_=this->size_;
+        }
     }
     constexpr size_t max_size()const noexcept{
-        // TODO
+        return ((size_t)-1);
     }
     constexpr void swap(_Array<_Type>& array)noexcept{
-        // TODO
+        if(this!=&array){
+            _Element<_Type>* temp_data=this->data_;
+            size_t temp_size=this->size_;
+            size_t temp_capacity=this->capacity_;
+            this->data_=array.data_;
+            this->size_=array.size_;
+            this->capacity_=array.capacity_;
+            array.data_=temp_data;
+            array.size_=temp_size;
+            array.capacity_=temp_capacity;
+        }
     }
     constexpr bool insert_element_n(size_t index,_Type const& value,size_t count)noexcept{
-        // TODO
+        if(index>this->size_){
+            return false;
+        }
+        this->reserve_capacity(this->size_+count);
+        ::memmove(this->data_+index+count,this->data_+index,(this->size_-index)*sizeof(_Element<_Type>));
+        for(size_t n=0;n<count;++n){
+            (this->data_[index+n]).pointer_=(_Type*)::malloc(sizeof(_Type));
+            new((this->data_[index+n]).pointer_)_Type(value);
+        }
+        this->size_+=count;
+        return true;
     }
     constexpr bool erase_element_n(size_t index,size_t count)noexcept{
-        // TODO
+        if(index>=this->size_){
+            return false;
+        }
+        size_t real_count=count>(this->size_-index)?(this->size_-index):count;
+        for(size_t n=0;n<count;++n){
+            ((this->data_[index+n]).pointer_)->~_Type();
+            ::free((this->data_[index+n]).pointer_);
+        }
+        ::memmove(this->data_+index,this->data_+index+real_count,(this->size_-index-real_count)*sizeof(_Element<_Type>));
+        this->size_-=real_count;
+        return true;
     }
     constexpr bool insert_array(size_t index,_Array<_Type> const& array)noexcept{
-        // TODO
-    }
-    constexpr _Array<_Type> operator+(_Array<_Type> const& array)const noexcept{
-        // TODO
+        if(index>this->size_){
+            return false;
+        }
+        this->reserve_capacity(this->size_+array.size_);
+        if(this!=&array){
+            ::memmove(this->data_+index+array.size_,this->data_+index,(this->size_-index)*sizeof(_Element<_Type>));
+            for(size_t n=0;n<array.size_;++n){
+                (this->data_[index+n]).pointer_=(_Type*)::malloc(sizeof(_Type));
+                new((this->data_[index+n]).pointer_)_Type(array[n]);
+            }
+        }else{
+            _Array<_Type>array_value=array;
+            ::memmove(this->data_+index+array_value.size_,this->data_+index,(this->size_-index)*sizeof(_Element<_Type>));
+            for(size_t n=0;n<array_value.size_;++n){
+                (this->data_[index+n]).pointer_=(_Type*)::malloc(sizeof(_Type));
+                new((this->data_[index+n]).pointer_)_Type(array_value[n]);
+            }
+        }
+        this->size_+=array.size_;
+        return true;
     }
     constexpr _Array<_Type>& operator+=(_Array<_Type> const& array)noexcept{
-        // TODO
+        this->insert_array(this->size_,array);
+        return *this;
+    }
+    constexpr _Array<_Type> operator+(_Array<_Type> const& array)const noexcept{
+        _Array<_Type> ret(*this);
+        return ret+=array;
     }
 }; // class Array
 } // namespace script

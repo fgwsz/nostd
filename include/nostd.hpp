@@ -9,3 +9,4 @@
 #include"script/boolean.hpp"
 #include"script/u8char.hpp"
 #include"script/array.hpp"
+#include"script/u8string.hpp"
