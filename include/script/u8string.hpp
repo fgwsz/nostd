@@ -113,7 +113,7 @@ public:
     constexpr void swap(U8String& u8string)noexcept{
         this->data_.swap(u8string.data_);
     }
-    constexpr void empty()const noexcept{
+    constexpr bool empty()const noexcept{
         this->data_.empty();
     }
     constexpr bool operator<(U8String const& u8string)const noexcept{

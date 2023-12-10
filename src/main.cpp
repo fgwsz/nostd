@@ -7,6 +7,5 @@ int main(void){
     ::std::cout<<str<<"\n";
     U8String string{"你好世界"};
     ::std::cout<<string.to_char_array()<<"\n";
-
     return 0;
 }
