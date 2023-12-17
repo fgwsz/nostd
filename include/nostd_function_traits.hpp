@@ -11,7 +11,19 @@ struct CStyleVaList{
 };
 using c_style_va_list_t=CStyleVaList;
 template<typename..._Types>
-struct ParameterList{};
+struct ParameterList;
+template<>
+struct ParameterList<>{
+    using head_t=void;
+    using tail_t=ParameterList<>;
+    static constexpr size_t size=0;
+};
+template<typename _Head,typename..._Types>
+struct ParameterList<_Head,_Types...>{
+    using head_t=_Head;
+    using tail_t=ParameterList<_Types...>;
+    static constexpr size_t size=sizeof...(_Types)+1;
+};
 template<typename _Type>
 static constexpr auto is_unmember_function_v=
     ::std::is_function_v<::std::remove_cvref_t<_Type>>;
@@ -54,7 +66,7 @@ template<typename _FunctionType>
 struct __FunctionTraits{
     using result_type                 =::nostd::undefined_t;
     using class_type                  =::nostd::undefined_t;
-    using parameter_list               =::nostd::undefined_t;
+    using parameter_list              =::nostd::undefined_t;
     using has_c_style_va_list         =::std::false_type;
     using has_const                   =::std::false_type;
     using has_volatile                =::std::false_type;
@@ -73,7 +85,7 @@ template< \
 struct __FunctionTraits<_ResultType(_Parameters...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =::nostd::undefined_t; \
-    using parameter_list               =::nostd::ParameterList<_Parameters...>; \
+    using parameter_list              =::nostd::ParameterList<_Parameters...>; \
     using has_c_style_va_list         =::std::false_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
@@ -90,7 +102,7 @@ template< \
 struct __FunctionTraits<_ResultType(_Parameters...,...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =::nostd::undefined_t; \
-    using parameter_list               =::nostd::ParameterList<_Parameters...,::nostd::c_style_va_list_t>; \
+    using parameter_list              =::nostd::ParameterList<_Parameters...,::nostd::c_style_va_list_t>; \
     using has_c_style_va_list         =::std::true_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
@@ -108,7 +120,7 @@ template< \
 struct __FunctionTraits<_ResultType(_ClassType::*)(_Parameters...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =_ClassType; \
-    using parameter_list               =::nostd::ParameterList<_Parameters...>; \
+    using parameter_list              =::nostd::ParameterList<_Parameters...>; \
     using has_c_style_va_list         =::std::false_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
@@ -126,7 +138,7 @@ template< \
 struct __FunctionTraits<_ResultType(_ClassType::*)(_Parameters...,...)__EXT__>{ \
     using result_type                 =_ResultType; \
     using class_type                  =_ClassType; \
-    using parameter_list               =::nostd::ParameterList<_Parameters...,::nostd::c_style_va_list_t>; \
+    using parameter_list              =::nostd::ParameterList<_Parameters...,::nostd::c_style_va_list_t>; \
     using has_c_style_va_list         =::std::true_type; \
     using has_const                   =__C__; \
     using has_volatile                =__V__; \
