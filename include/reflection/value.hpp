@@ -5,6 +5,8 @@
 #include<type_traits>
 #include<stdexcept>
 #include"type.hpp"
+// 构造时可选任何类型的值类型（不包括C风格数组）进行存储
+// 运行时底层存储类型可变的弱类型
 class Value{
     static constexpr size_t small_data_max_size=sizeof(void*);
     union Data{
@@ -15,7 +17,6 @@ class Value{
     Type type_;
     void (*copy_ctor_func_)(void*,void const*);
     void (*dtor_func_)(void*);
-    size_t byte_size_;
     bool is_small_;
     bool is_empty_;
     template<typename _ValueType>
@@ -42,7 +43,6 @@ public:
         ,type_()
         ,copy_ctor_func_(nullptr)
         ,dtor_func_(nullptr)
-        ,byte_size_(0)
         ,is_small_(true)
         ,is_empty_(true)
     {}
@@ -57,8 +57,7 @@ public:
             this->copy_ctor_func_(this->data_.small_data_,&value);
             this->is_small_=true;
         }else{
-            this->byte_size_=sizeof(value_type);
-            this->data_.big_data_ptr_=this->malloc_func(this->byte_size_);
+            this->data_.big_data_ptr_=this->malloc_func(this->type_.byte_size());
             this->copy_ctor_func_(this->data_.big_data_ptr_,&value);
             this->is_small_=false;
         }
@@ -79,7 +78,6 @@ public:
             this->type_=Type();
             this->copy_ctor_func_=nullptr;
             this->dtor_func_=nullptr;
-            this->byte_size_=0;
             this->is_small_=true;
             this->is_empty_=true;
         }
@@ -97,13 +95,12 @@ public:
             if(value.is_small_){
                 value.copy_ctor_func_(this->data_.small_data_,value.data_.small_data_);
             }else{
-                this->data_.big_data_ptr_=this->malloc_func(value.byte_size_);
+                this->data_.big_data_ptr_=this->malloc_func(value.type_.byte_size());
                 value.copy_ctor_func_(this->data_.big_data_ptr_,value.data_.big_data_ptr_);
             }
             this->type_=value.type_;
             this->copy_ctor_func_=value.copy_ctor_func_;
             this->dtor_func_=value.dtor_func_;
-            this->byte_size_=value.byte_size_;
             this->is_small_=value.is_small_;
             this->is_empty_=value.is_empty_;
         }
@@ -115,7 +112,10 @@ public:
     template<typename _Type>
     inline operator _Type()const{
         using value_type=::std::decay_t<::std::remove_cvref_t<_Type>>;
-        static_assert(::std::is_convertible_v<value_type&,_Type>);
+        static_assert(
+            !::std::is_void_v<_Type>&&
+            ::std::is_convertible_v<value_type&,_Type>
+        );
         if(this->empty()){
             throw ::std::runtime_error("Value Cast Error:Value Is Empyt"); 
         }
@@ -133,6 +133,6 @@ public:
     }
     template<typename _Type>
     inline _Type get()const{
-        return (_Type)(*this);
+        return this->operator _Type();
     }
 };
