@@ -3,39 +3,42 @@ template<typename _Type>
 class Reference{
     _Type* data_;
 public:
-    Reference(){
+    inline constexpr Reference()noexcept{
         this->data_=nullptr;
     }
-    explicit Reference(_Type& lval_ref){
+    inline explicit constexpr Reference(_Type& lval_ref)noexcept{
         this->data_=&lval_ref;
     }
-    bool empty()const{
+    inline constexpr bool empty()const noexcept{
         return this->data_==nullptr;
     }
-    Reference(Reference<_Type> const& ref){
-        this->data_=ref->data_;
+    inline constexpr Reference(Reference<_Type> const& ref)noexcept{
+        this->data_=ref.data_;
     }
     using reference_type=_Type&;
-    operator reference_type()const{
+    inline constexpr operator reference_type()const noexcept{
         return *(this->data_);
     }
-    void reset(){
+    inline constexpr _Type& get()const noexcept{
+        return *(this->data_);
+    }
+    inline constexpr void reset()noexcept{
         this->data_=nullptr;
     }
-    ~Reference(){
+    inline constexpr ~Reference()noexcept{
         this->reset();
     }
-    Reference& operator=(Reference<_Type> const& ref){
+    inline constexpr Reference& operator=(Reference<_Type> const& ref)noexcept{
         if(this!=&ref){
             if(this->empty()&&!ref.empty()){
-                this->data_=ref->data_;
+                this->data_=ref.data_;
             }else if(!this->empty()&&ref.empty()){
                 this->reset();
             }else if(
                 reinterpret_cast<char*>(this->data_)
                 !=reinterpret_cast<char*>(ref.data_)
             ){
-                static_cast<_Type&>(*this)=static_cast<_Type&>(ref);
+                this->get()=ref.get();
             }
         }
         return *this;
