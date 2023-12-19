@@ -103,16 +103,12 @@ public:
                 this->base_type_=obj.base_type_;
                 this->info_=obj.info_;
                 this->copy_func_=obj.copy_func_;
-                return *this;
             }else if(!this->empty()&&obj.empty()){
                 throw ::std::runtime_error("Object Assign Error:Object(Not Empty) Assign by Nil");
-                return *this;
             }else if(this->base_type_!=obj.base_type_){
                 throw ::std::runtime_error("Object Assign Error:Object Base Type Not Equal");
-                return *this;
             }else if(this->info_==Info::CREF){
                 throw ::std::runtime_error("Object Assign Error:Object(CRef) Can't be Assign");
-                return *this;
             }else{
                 obj.copy_func_(this->data_,obj.data_);
             }
