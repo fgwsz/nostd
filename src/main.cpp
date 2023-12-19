@@ -1,4 +1,4 @@
-﻿#include"reflection/type_test.hpp"
+﻿#include"reflection/value_test.hpp"
 int main(void){
     test();
     return 0;
