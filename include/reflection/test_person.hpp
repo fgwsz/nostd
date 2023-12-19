@@ -80,7 +80,7 @@ struct ClassMetaInfo{
 static ::std::unordered_map<::std::string_view,ClassMetaInfo> _class_meta_info_map;
 template<typename _ClassType,typename _FieldType>
 long long get_offset(_ClassType const& self,_FieldType _ClassType::* field_ptr){
-    return (long long)((char*)&(self.*field_ptr)-(char*)0);
+    return (long long)((char*)&(self.*field_ptr)-(char*)&self);
 }
 void* get_field(void* object,long long offset){
     return (void*)(((char*)(void*)object)+offset);
