@@ -8,7 +8,7 @@ void test_ctor_1(){
     assert(value.empty());
 }
 void test_ctor_2(){
-    int num=100;
+    int const volatile num=100;
     Value value(num);
     assert(!value.empty());
     assert(value.type()==make_type<int>());

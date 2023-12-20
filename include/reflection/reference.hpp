@@ -29,7 +29,7 @@ public:
     inline constexpr ~Reference()noexcept{
         this->reset();
     }
-    inline constexpr Reference& operator=(Reference<_Type> const& ref)noexcept{
+    inline constexpr Reference& operator=(Reference<_Type> const& ref){
         if(this!=&ref){
             if(this->empty()&&!ref.empty()){
                 this->data_=ref.data_;

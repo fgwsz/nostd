@@ -16,6 +16,7 @@ class Value{
     Data data_;
     Type type_;
     void (*copy_ctor_func_)(void*,void const*);
+    void (*copy_assign_func_)(void*,void const*);
     void (*dtor_func_)(void*);
     bool is_small_;
     bool is_empty_;
@@ -26,6 +27,10 @@ class Value{
     template<typename _ValueType>
     static inline void copy_ctor_func(void* to,void const* from)noexcept{
         new (to)_ValueType(*reinterpret_cast<_ValueType const*>(from));
+    }
+    template<typename _ValueType>
+    static inline void copy_assign_func(void* to,void const* from)noexcept{
+        *reinterpret_cast<_ValueType*>(to)=*reinterpret_cast<_ValueType const*>(from);
     }
     template<typename _ValueType>
     static inline void dtor_func(void* ptr)noexcept{
@@ -42,6 +47,7 @@ public:
         :data_()
         ,type_()
         ,copy_ctor_func_(nullptr)
+        ,copy_assign_func_(nullptr)
         ,dtor_func_(nullptr)
         ,is_small_(true)
         ,is_empty_(true)
@@ -51,6 +57,7 @@ public:
         :Value(){
         using value_type=::std::decay_t<_Type>;
         this->copy_ctor_func_=&(this->copy_ctor_func<value_type>);
+        this->copy_assign_func_=&(this->copy_assign_func<value_type>);
         this->dtor_func_=&(this->dtor_func<value_type>);
         this->type_=make_type<value_type>();
         if(this->is_small<value_type>()){
@@ -77,6 +84,7 @@ public:
             }
             this->type_=Type();
             this->copy_ctor_func_=nullptr;
+            this->copy_assign_func_=nullptr;
             this->dtor_func_=nullptr;
             this->is_small_=true;
             this->is_empty_=true;
@@ -91,18 +99,29 @@ public:
     }
     inline Value& operator=(Value const& value)noexcept{
         if(this!=&value){
-            this->reset();
-            if(value.is_small_){
-                value.copy_ctor_func_(this->data_.small_data_,value.data_.small_data_);
-            }else{
-                this->data_.big_data_ptr_=this->malloc_func(value.type_.byte_size());
-                value.copy_ctor_func_(this->data_.big_data_ptr_,value.data_.big_data_ptr_);
+            if(this->type_==value.type_&&!value.is_empty_){ // 11 =
+                if(value.is_small_){
+                    value.copy_assign_func_(this->data_.small_data_,value.data_.small_data_);
+                }else{
+                    value.copy_assign_func_(this->data_.big_data_ptr_,value.data_.big_data_ptr_);
+                }
+            }else if(value.is_empty_){ // 00 or 10
+                this->reset();
+            }else if(this->type_!=value.type_){ // 01 or 11 !=
+                this->reset();
+                if(value.is_small_){
+                    value.copy_ctor_func_(this->data_.small_data_,value.data_.small_data_);
+                }else{
+                    this->data_.big_data_ptr_=this->malloc_func(value.type_.byte_size());
+                    value.copy_ctor_func_(this->data_.big_data_ptr_,value.data_.big_data_ptr_);
+                }
+                this->type_=value.type_;
+                this->copy_ctor_func_=value.copy_ctor_func_;
+                this->copy_assign_func_=value.copy_assign_func_;
+                this->dtor_func_=value.dtor_func_;
+                this->is_small_=value.is_small_;
+                this->is_empty_=value.is_empty_;
             }
-            this->type_=value.type_;
-            this->copy_ctor_func_=value.copy_ctor_func_;
-            this->dtor_func_=value.dtor_func_;
-            this->is_small_=value.is_small_;
-            this->is_empty_=value.is_empty_;
         }
         return *this;
     }
