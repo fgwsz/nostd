@@ -1,5 +1,6 @@
 #pragma once
 #include<stdexcept>
+#include<type_traits>
 template<typename _Type>
 class Reference{
     _Type* data_;
@@ -31,21 +32,16 @@ public:
     }
     inline constexpr Reference& operator=(Reference<_Type> const& ref){
         if(this!=&ref){
-            if(this->empty()&&!ref.empty()){
+            if(!this->data_&&!ref.data_){ // 11
+                if constexpr(::std::is_const_v<_Type>){
+                    throw ::std::runtime_error("Reference Assign Error:Const Ref Can't Be Assign");
+                }else{
+                    if(this->data_!=ref.data_){
+                        *(this->data_)=*(ref.data_);
+                    }
+                }
+            }else{ // 00 10 01
                 this->data_=ref.data_;
-            }else if(!this->empty()&&ref.empty()){
-                this->reset();
-            }else if(::std::is_const_v<_Type>){
-                throw ::std::runtime_error("Reference Assign Error:Const Ref Can't Be Assign");
-            }else if(
-                reinterpret_cast<char*>(
-                    const_cast<::std::remove_cv_t<_Type>*>(this->data_)
-                )
-                !=reinterpret_cast<char*>(
-                    const_cast<::std::remove_cv_t<_Type>*>(ref.data_)
-                )
-            ){
-                this->get()=ref.get();
             }
         }
         return *this;
