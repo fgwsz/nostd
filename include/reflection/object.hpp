@@ -21,7 +21,7 @@
             ::std::remove_cvref_t<decltype(__arg__)>, \
             decltype(__arg__) \
         > \
-    >,(__arg__) \
+    >(),(__arg__) \
 //
 
 // 在构造时可选三种不同的底层存储类型，值类型，左值引用，左值常量引用
@@ -60,26 +60,26 @@ public:
         ::std::enable_if_t<!::std::is_const_v<_Type>,int> _=0>
     inline Object(TypeHelper<_Type&> place_holder,_Type& arg)noexcept
         :Object(){
-        using value_type=::std::decay_t<::std::remove_cvref_t<_Type>>;
+        using value_type=_Type;
         this->data_=Value(Reference<value_type>(arg));
         this->type_=make_type<value_type&>();
-        this->base_type_=make_type<value_type>();
+        this->base_type_=make_type<value_type>();// Bug:_Type has volatile
         this->info_=Info::REF;
         this->copy_func_=[](Value& to,Value const& from){
             to=Value(from.get<Reference<value_type>&>().get());
-        }
+        };
     }
     template<typename _Type>
     inline Object(TypeHelper<_Type const&> place_holder,_Type const& arg)noexcept
         :Object(){
-        using value_type=::std::decay_t<::std::remove_cvref_t<_Type>>;
+        using value_type=_Type;
         this->data_=Value(Reference<value_type const>(arg));
         this->type_=make_type<value_type const&>();
-        this->base_type_=make_type<value_type>();
+        this->base_type_=make_type<value_type>();// Bug:_Type has volatile
         this->info_=Info::CREF;
         this->copy_func_=[](Value& to,Value const& from){
             to=Value(from.get<Reference<value_type const>&>().get());
-        }
+        };
     }
     inline constexpr Type const& type()const noexcept{
         return this->type_;
@@ -109,7 +109,10 @@ public:
                 throw ::std::runtime_error("Object Assign Error:Object Base Type Not Equal");
             }else if(this->info_==Info::CREF){
                 throw ::std::runtime_error("Object Assign Error:Object(CRef) Can't be Assign");
-            }else{
+            }else if(this->info_==Info::REF){
+                // TODO
+                // Value{Reference<_Type>}=Value;
+            }else if(this->info_==Info::VAL){
                 obj.copy_func_(this->data_,obj.data_);
             }
         }

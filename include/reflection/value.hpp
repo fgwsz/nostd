@@ -47,9 +47,9 @@ public:
         ,is_empty_(true)
     {}
     template<typename _Type>
-    inline explicit Value(_Type const& value)noexcept
+    inline explicit Value(_Type value)noexcept
         :Value(){
-        using value_type=::std::decay_t<::std::remove_cvref_t<_Type>>;
+        using value_type=::std::decay_t<_Type>;
         this->copy_ctor_func_=&(this->copy_ctor_func<value_type>);
         this->dtor_func_=&(this->dtor_func<value_type>);
         this->type_=make_type<value_type>();
@@ -111,7 +111,7 @@ public:
     }
     template<typename _Type>
     inline operator _Type()const{
-        using value_type=::std::decay_t<::std::remove_cvref_t<_Type>>;
+        using value_type=::std::decay_t<_Type>;
         static_assert(
             !::std::is_void_v<_Type>&&
             ::std::is_convertible_v<value_type&,_Type>

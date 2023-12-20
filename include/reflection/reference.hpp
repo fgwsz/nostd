@@ -1,4 +1,5 @@
 #pragma once
+#include<stdexcept>
 template<typename _Type>
 class Reference{
     _Type* data_;
@@ -34,9 +35,15 @@ public:
                 this->data_=ref.data_;
             }else if(!this->empty()&&ref.empty()){
                 this->reset();
+            }else if(::std::is_const_v<_Type>){
+                throw ::std::runtime_error("Reference Assign Error:Const Ref Can't Be Assign");
             }else if(
-                reinterpret_cast<char*>(this->data_)
-                !=reinterpret_cast<char*>(ref.data_)
+                reinterpret_cast<char*>(
+                    const_cast<::std::remove_cv_t<_Type>*>(this->data_)
+                )
+                !=reinterpret_cast<char*>(
+                    const_cast<::std::remove_cv_t<_Type>*>(ref.data_)
+                )
             ){
                 this->get()=ref.get();
             }
