@@ -1,18 +1,46 @@
 #pragma once
 #include<type_traits>
-#include<functional>
 #include<stdexcept>
 #include"value.hpp"
 #include"reference.hpp"
 
-// 在构造时可选四种不同的底层存储类型:
-// T/T const/T&/T const&
-// 支持用值类型存储右值T&&，但会退化为值类型T进行存储
-// 不支持volatile
-// T/T const值类型不支持函数类型ret(arg...)和数组类型type[n]
-// T/T const值类型支持函数指针类型ret(*)(arg...)和数组指针类型type(*)[n]
-// T&/T const&引用类型支持函数引用类型ret(&)(arg...)和数组引用类型type(&)[n]
-// 运行时（构造后非空时）底层存储类型不可变的强类型
+// 运行时强类型容器类
+// 1）支持存储T/T const/T&/T const&四种形式的类型对象
+    // 使用Value存储T/T const
+    // 使用Reference存储T&/T const&
+    // 不支持右值语义，但可以存储右值T&&，会退化为值类型T进行存储
+    // 不支持volatile语义，但可以存储值T volatile，会退化为值类型T进行存储
+    // 不支持存储函数类型ret(arg...)和数组类型type[n]
+        // 原因：由于函数参数的类型退化机制导致
+        // 但是支持存储它们参数类型退化之后的ret(*)(arg...)函数指针和type(*)[n]数组指针类型
+        // 以及它们的引用类型ret(&)(arg...)函数引用和type(&)[n]数组引用类型
+// 2）支持T/T const/T&/T const&语义（赋值/类型转换时进行动态类型检查）
+    // 赋值时类型检查（copy ctor and copy assign）
+    // from\to |T      |T const |T&      |T const&
+    // T       |O      |X       |O       |X        
+    // T const |O      |X       |O       |X        
+    // T&      |O      |X       |O       |X        
+    // T const&|O      |X       |O       |X        
+    // 类型转换时类型检查（safe_cast and get）
+    // from\to |T      |T const |T&      |T const&
+    // T       |O      |O       |X       |O        
+    // T const |O      |O       |X       |O        
+    // T&      |O      |O       |O       |O        
+    // T const&|O      |O       |X       |O        
+// 3）构造非空对象之后，无法重新赋值为空，更无法变更底层存储结构
+    // 原因：以此保证运行时整个生命周期内底层存储结构不可变，实现运行时强类型
+// 4）可以作为对应类型的函数参数，传入函数参数中，
+    // 其中支持隐式转换到T/T const/T&/T const&四种形式的函数参数
+        // Object->T&(T=X)      ->assign->X
+        // Object->T&(T=X)      ->assign->X const
+        // Object->T&(T=X)      ->X&
+        // Object->T&(T=X const)->X const&
+    // 注意：为了实现功能性（不显式书写转换类型这一目标）
+        // 隐式类型转换不进行运行时T/T const/T&/T const&语义类型检查，
+        // 如果想要保证运行时类型安全请使用上面提到的safe_cast or get进行显式类型转换
+    // 注意：不能隐式转换到T&&这种形式的函数参数
+        // 原因：为了保证底层存储结构整个生命周期内不失效，保持可用性，没有实现operator _Type&&()
+// 4）支持空的Object对象到void类型的转换（空Object对象作为无参函数返回值的时候）
 class Object{
     template<typename _BaseType>
     static void mval_assign_from_mval(Value& to,Value const& from){
