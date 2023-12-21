@@ -220,6 +220,14 @@ public:
         }
         return *this;
     }
+    using void_t=void;
+    inline operator void_t()const{
+        if(this->empty()){
+            return;
+        }else{
+            throw ::std::runtime_error("Value Cast Error:Value Is Not Empty,Can't Cast To Void");
+        }
+    }
     // from\to |T      |T const |T&      |T const&
     // T       |O      |O       |X       |O        
     // T const |O      |O       |X       |O        
@@ -227,13 +235,6 @@ public:
     // T const&|O      |O       |X       |O        
     template<typename _Type>
     inline operator _Type()const{
-        if constexpr(::std::is_void_v<_Type>){
-            if(this->empty()){
-                return;
-            }else{
-                throw ::std::runtime_error("Value Cast Error:Value Is Not Empty,Can't Cast To Void");
-            }
-        }
         using base_type=get_base_type_t<_Type>;
         if(make_type<base_type>()!=this->base_type_){
             throw ::std::runtime_error("Object Cast Error:Object Base Type Not Equal");

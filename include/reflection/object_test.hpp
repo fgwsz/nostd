@@ -62,6 +62,7 @@ void test_cast_1(){
     int& mref=mval;
     Object obj_mref(OBJECT_CTOR_OF(OBJECT_CTOR_FLAG_MREF,mref));
     // func_3(obj_mref); // why can not cast?
+    // 无法用 "Object" 类型的值初始化 "int &" 类型的引用(非常量限定)C/C++(434)
     func_3(obj_mref.get<int&>());
     int const& cref=cval;
     Object obj_cref(OBJECT_CTOR_OF(OBJECT_CTOR_FLAG_CREF,cref));
