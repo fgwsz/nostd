@@ -15,9 +15,9 @@ public:
     requires requires{
         ::nostd::FunctionTraits<_FuncType>::is_functor::value&&
         ::nostd::FunctionTraits<_FuncType>::is_unmember_function::value&&
-        ::nostd::FunctionTraits<_FuncType>::is_unmember_function_pointer::value&&
-        !::nostd::FunctionTraits<_FuncType>::has_c_style_va_list&&
-        ::nostd::FunctionTraits<_FuncType>::parameter_list::size>0;
+        ::nostd::FunctionTraits<_FuncType>::is_unmember_function_pointer::value&&// 成员函数的情况呢？
+        !::nostd::FunctionTraits<_FuncType>::has_c_style_va_list&&// 包含C可变参数的情况呢？
+        ::nostd::FunctionTraits<_FuncType>::parameter_list::size!=0;// 参数为0的情况呢？
     }
     inline Function(_FuncType&& func)noexcept{
         constexpr size_t args_count=
@@ -27,8 +27,7 @@ public:
         this->args_ptr_=new(::std::nothrow_t)args_array_t;
         this->func_=[&](){
             auto& args=*static_cast<args_array_t*>(this->args_ptr_);
-            decltype(auto) ret=func(/*TODO*/);
-            return Object(OBJECT_CTOR_ARG(ret));
+            return make_object(func(/*TODO*/));// 有没有返回值/以及返回值是不是右值
         };
         this->args_destory_=[&](void* args_ptr){
             auto ptr=static_cast<args_array_t*>(args_ptr);
@@ -45,7 +44,7 @@ public:
         }else{
             using args_array_t=::std::array<Object,sizeof...(args)>;
             auto& args=*static_cast<args_array_t*>(this->args_ptr_);
-            args={::std::forward<_ArgType>(args)...};
+            args={make_object(::std::forward<_ArgType>(args))...};
             return this->func_();
         }
     }

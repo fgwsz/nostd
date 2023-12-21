@@ -511,3 +511,20 @@ public:
         Object::get_base_type_t<decltype(__VA_ARGS__)>__object_ctor_flag__ \
     >(),(__VA_ARGS__) \
 //
+
+// T         -> match -> T &
+// T const   -> match -> T const &
+// T &       -> Object(TypeHelper<T &>      ,T &       __arg__)
+// T const & -> Object(TypeHelper<T const &>,T const & __arg__)
+// T &&      -> Object(TypeHelper<T>        ,T         __arg__)
+template<typename _Type>
+inline static Object make_object(_Type&& arg)noexcept{
+    if constexpr(::std::is_lvalue_reference_v<_Type>){
+        return Object(TypeHelper<_Type>(),arg);
+    }else{
+        return Object(TypeHelper<::std::remove_cvref_t<_Type&&>>(),arg);
+    }
+}
+inline static Object make_object(void)noexcept{
+    return Object();
+}
