@@ -1,8 +1,10 @@
 #pragma once
 #include<cassert>
 #include<iostream>
+#include<source_location>
 #include"object.hpp"
 void test_ctor_1(){
+    ::std::cout<<::std::source_location::current().function_name()<<::std::endl;
     int mval=100;
     Object obj_mval(OBJECT_CTOR_ARG(mval));
     ::std::cout<<obj_mval.type().name()<<"\n";
@@ -20,6 +22,7 @@ void test_ctor_1(){
     ::std::cout<<obj_rref.type().name()<<"\n";
 }
 void test_ctor_2(){
+    ::std::cout<<::std::source_location::current().function_name()<<::std::endl;
     int mval=100;
     Object obj_mval(OBJECT_CTOR_OF(OBJECT_CTOR_FLAG_MVAL,mval));
     ::std::cout<<obj_mval.type().name()<<"\n";
@@ -37,6 +40,7 @@ void test_ctor_2(){
     ::std::cout<<obj_rref.type().name()<<"\n";
 }
 void test_cast_1(){
+    ::std::cout<<::std::source_location::current().function_name()<<::std::endl;
     auto func_1=[](int num){
         ::std::cout<<"int num="<<num<<::std::endl;
     };
@@ -57,12 +61,14 @@ void test_cast_1(){
     func_2(obj_cval);
     int& mref=mval;
     Object obj_mref(OBJECT_CTOR_OF(OBJECT_CTOR_FLAG_MREF,mref));
+    // func_3(obj_mref); // why can not cast?
     func_3(obj_mref.get<int&>());
     int const& cref=cval;
     Object obj_cref(OBJECT_CTOR_OF(OBJECT_CTOR_FLAG_CREF,cref));
     func_4(obj_cref);
 }
 void test_cast_2(){
+    ::std::cout<<::std::source_location::current().function_name()<<::std::endl;
     int mval=100;
     int& mref=mval;
     Object obj_mref(OBJECT_CTOR_OF(OBJECT_CTOR_FLAG_MREF,mref));
@@ -70,8 +76,11 @@ void test_cast_2(){
     assert(mval==200);
     mref=300;
     assert(obj_mref.get<int const&>()==300);
+    Object obj_empty;
+    static_cast<void>(obj_empty);
 }
 void test_assign(){
+    ::std::cout<<::std::source_location::current().function_name()<<::std::endl;
     int mval=100;
     int const cval=200;
     int tmp_1=300;

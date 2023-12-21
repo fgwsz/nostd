@@ -131,14 +131,19 @@ public:
     template<typename _Type>
     inline operator _Type()const{
         using value_type=::std::decay_t<_Type>;
-        static_assert(
-            !::std::is_void_v<_Type>&&
-            ::std::is_convertible_v<value_type&,_Type>
-        );
+        if constexpr(::std::is_void_v<_Type>){
+            if(this->is_empty_){
+                return;
+            }else{
+                throw ::std::runtime_error("Value Cast Error:Value Is Not Empty,Can't Cast To Void");
+            }
+        }
+        if constexpr(!::std::is_convertible_v<value_type&,_Type>){
+            throw ::std::runtime_error("Value Cast Error:Value Can't Cast To _Type");
+        };
         if(this->empty()){
             throw ::std::runtime_error("Value Cast Error:Value Is Empyt"); 
-        }
-        else if(make_type<value_type>()!=this->type_){
+        }else if(make_type<value_type>()!=this->type_){
             throw ::std::runtime_error("Value Cast Error:Type Not Equal");
         }else{
             if(this->is_small_){

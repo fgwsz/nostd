@@ -227,8 +227,12 @@ public:
     // T const&|O      |O       |X       |O        
     template<typename _Type>
     inline operator _Type()const{
-        if(this->empty()){
-            throw ::std::runtime_error("Object Cast Error:Object Is Empty");
+        if constexpr(::std::is_void_v<_Type>){
+            if(this->empty()){
+                return;
+            }else{
+                throw ::std::runtime_error("Value Cast Error:Value Is Not Empty,Can't Cast To Void");
+            }
         }
         using base_type=get_base_type_t<_Type>;
         if(make_type<base_type>()!=this->base_type_){
