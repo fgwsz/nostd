@@ -40,7 +40,8 @@
         // 如果想要保证运行时类型安全请使用上面提到的safe_cast or get进行显式类型转换
     // 注意：不能隐式转换到T&&这种形式的函数参数
         // 原因：为了保证底层存储结构整个生命周期内不失效，保持可用性，没有实现operator _Type&&()
-// 4）支持空的Object对象到void类型的转换（空Object对象作为无参函数返回值的时候）
+    // 注意：支持空的Object对象到void类型的转换
+        // 原因：空Object对象作为无参函数返回值的时候可用到该特性
 class Object{
     template<typename _BaseType>
     static void mval_assign_from_mval(Value& to,Value const& from){
