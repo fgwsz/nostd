@@ -525,6 +525,6 @@ inline static Object make_object(_Type&& arg)noexcept{
         return Object(TypeHelper<::std::remove_cvref_t<_Type&&>>(),arg);
     }
 }
-inline static Object make_object(void)noexcept{
+inline static Object make_object()noexcept{
     return Object();
 }
