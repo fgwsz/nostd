@@ -3,6 +3,7 @@
 #include<array>
 #include<stdexcept>
 #include<functional>
+#include<vector>
 #include"object.hpp"
 #include"nostd_function_traits.hpp"
 template<typename _StdArrayType>
@@ -35,16 +36,18 @@ inline static decltype(auto) invoke(
     );
 }
 class Function{
-    size_t args_count_;
+    void* func_ptr_;
     void* args_ptr_;
-    ::std::function<Object()> func_;
-    ::std::function<void(void*)> args_destory_;
+    size_t args_count_;
+    ::std::function<Object(void* func_ptr,void* args_ptr)> invoker_;
+    ::std::function<void(void*& func_ptr,void*& args_ptr)> destory_;
 public:
     inline Function()noexcept
-        :args_count_(0)
+        :func_ptr_(nullptr)
         ,args_ptr_(nullptr)
-        ,func_(nullptr)
-        ,args_destory_(nullptr)
+        ,args_count_(0)
+        ,invoker_(nullptr)
+        ,destory_(nullptr)
     {}
     template<typename _FuncType>
     requires requires{
@@ -53,63 +56,86 @@ public:
         ::nostd::FunctionTraits<_FuncType>::is_unmember_function_pointer::value)&&// 成员函数的情况呢？
         !::nostd::FunctionTraits<_FuncType>::has_c_style_va_list::value;// 包含C可变参数的情况呢？
     }
-    inline Function(_FuncType&& func)noexcept
+    inline Function(_FuncType&& _function)noexcept
         :Function(){
+        using func_t=::std::function<
+            typename ::nostd::FunctionTraits<_FuncType>::function_base_type
+        >;
         constexpr size_t args_count=
             ::nostd::FunctionTraits<_FuncType>::parameter_list::size;
+        using args_t=::std::array<Object,args_count>;
         constexpr bool result_is_void=
             ::std::is_void_v<typename ::nostd::FunctionTraits<_FuncType>::result_type>;
-        using args_array_t=::std::array<Object,args_count>;
+
+        this->func_ptr_=new(::std::nothrow)func_t(::std::forward<_FuncType>(_function));
+
         if constexpr(args_count!=0&&!result_is_void){
-            this->args_ptr_=new(::std::nothrow)args_array_t;
-            this->func_=[&](){
-                auto& args=*static_cast<args_array_t*>(this->args_ptr_);
-                return make_object(invoke(::std::forward<_FuncType>(func),args));
+            this->args_ptr_=new(::std::nothrow)args_t;
+            this->invoker_=[](void* func_ptr,void* args_ptr){
+                auto& func=*static_cast<func_t*>(func_ptr);
+                auto& args=*static_cast<args_t*>(args_ptr);
+                return make_object(invoke(func,args));
             };
         }else if constexpr(args_count!=0&&result_is_void){
-            this->args_ptr_=new(::std::nothrow)args_array_t;
-            this->func_=[&](){
-                auto& args=*static_cast<args_array_t*>(this->args_ptr_);
-                ::invoke(::std::forward<_FuncType>(func),args);
+            this->args_ptr_=new(::std::nothrow)args_t;
+            this->invoker_=[](void* func_ptr,void* args_ptr){
+                auto& func=*static_cast<func_t*>(func_ptr);
+                auto& args=*static_cast<args_t*>(args_ptr);
+                invoke(func,args);
                 return make_object();
             };
         }else if constexpr(args_count==0&&!result_is_void){
-            this->func_=[&](){
-                return make_object(::std::forward<_FuncType>(func)());
+            this->invoker_=[](void* func_ptr,void* args_ptr){
+                auto& func=*static_cast<func_t*>(func_ptr);
+                return make_object(func());
             };
         }else{
-            this->func_=[&](){
-                ::std::forward<_FuncType>(func)();
+            this->invoker_=[](void* func_ptr,void* args_ptr){
+                auto& func=*static_cast<func_t*>(func_ptr);
+                func();
                 return make_object();
             };
         }
         this->args_count_=args_count;
-        this->args_destory_=[&](void* args_ptr){
+        this->destory_=[](void*& func_ptr,void*& args_ptr){
+            if(func_ptr){
+                delete static_cast<func_t*>(func_ptr);
+                func_ptr=nullptr;
+            }
             if(args_ptr){
-                delete static_cast<args_array_t*>(args_ptr);
+                delete static_cast<args_t*>(args_ptr);
+                args_ptr=nullptr;
             }
         };
     }
     inline ~Function()noexcept{
-        this->args_destory_(this->args_ptr_);
-        this->args_ptr_=nullptr;
-    }
-    template<size_t _size>
-    inline Object operator()(::std::array<Object,_size>const& args)const{
-        if(args.size()!=this->args_count_){
-            throw ::std::runtime_error("Function::operator() Error:Args Count Not Equal");
-        }else{
-            using args_array_t=::std::array<Object,_size>;
-            auto& args_=*static_cast<args_array_t*>(this->args_ptr_);
-            args_=args;
-            return this->func_();
+        if(this->destory_){
+            this->destory_(this->func_ptr_,this->args_ptr_);
         }
     }
-    inline Object operator()()const{
-        if(this->args_count_!=0){
+    inline Object invoke_by_objects(::std::vector<Object>const& objects)const{
+        if(objects.size()!=this->args_count_){
             throw ::std::runtime_error("Function::operator() Error:Args Count Not Equal");
-        }else{
-            return this->func_();
+        }else if(this->args_count_!=0){
+            auto* args=static_cast<Object*>(this->args_ptr_);
+            for(size_t index=0;index<this->args_count_;++index){
+                args[index]=objects[index];
+            }
         }
+        return this->invoker_(this->func_ptr_,this->args_ptr_);
     }
+    template<typename..._ArgTypes>
+    inline Object operator()(_ArgTypes&&...args)const{
+        return this->invoke_by_objects({make_object(::std::forward<_ArgTypes>(args))...});
+    }
+    template<typename..._ArgTypes>
+    inline Object invoke_by_args(_ArgTypes&&...args)const{
+        return (*this)(::std::forward<_ArgTypes>(args)...);
+    }
+    //inline Function(Function const& func)noexcept
+    //    :Function(){
+    //    (*this)=func;
+    //}
+    //inline Function operator=(Function const& func)noexcept{
+    //}
 };

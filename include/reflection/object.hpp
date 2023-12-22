@@ -462,11 +462,11 @@ public:
 // Object obj(OBJECT_CTOR_ARG(arg));
 // 构建此宏的用意：
 // 依据输入参数__arg__的实际类型来选择Object对应的构造函数
-// T         -> Object(TypeHelper<T>        ,T         __arg__)
-// T const   -> Object(TypeHelper<T const>  ,T const   __arg__)
-// T &       -> Object(TypeHelper<T &>      ,T &       __arg__)
-// T const & -> Object(TypeHelper<T const &>,T const & __arg__)
-// T &&      -> Object(TypeHelper<T>        ,T         __arg__)
+// T              -> Object(TypeHelper<T>        ,T         __arg__)
+// T const        -> Object(TypeHelper<T const>  ,T const   __arg__)
+// T &            -> Object(TypeHelper<T &>      ,T &       __arg__)
+// T const &      -> Object(TypeHelper<T const &>,T const & __arg__)
+// T &&/T const&& -> Object(TypeHelper<T>        ,T         __arg__)
 #define OBJECT_CTOR_ARG(...) \
     TypeHelper< \
         ::std::conditional_t< \
@@ -512,16 +512,18 @@ public:
     >(),(__VA_ARGS__) \
 //
 
-// T         -> match -> T &
-// T const   -> match -> T const &
-// T &       -> Object(TypeHelper<T &>      ,T &       __arg__)
-// T const & -> Object(TypeHelper<T const &>,T const & __arg__)
-// T &&      -> Object(TypeHelper<T>        ,T         __arg__)
+// T       -> match -> T &
+// T const -> match -> T const &
+// T &              -> Object(TypeHelper<T &>      ,T &       __arg__)
+// T const &        -> Object(TypeHelper<T const &>,T const & __arg__)
+// T &&/T const&&   -> Object(TypeHelper<T>        ,T         __arg__)
 template<typename _Type>
 inline static Object make_object(_Type&& arg)noexcept{
     if constexpr(::std::is_lvalue_reference_v<_Type>){
+        // 此处不适用::std::forward<>的原因：T&->T&/T const&->T const&
         return Object(TypeHelper<_Type>(),arg);
     }else{
+        // 此处不适用::std::forward<>的原因：T&&->T
         return Object(TypeHelper<::std::remove_cvref_t<_Type&&>>(),arg);
     }
 }
