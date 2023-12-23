@@ -57,12 +57,16 @@ void test_func_ctor(){
     ::std::cout<<::std::source_location::current().function_name()<<::std::endl;
     char temp='A';
     Function f1(&foo_1);
+    ::std::cout<<f1.type().name()<<"\n";
     int ret_1=f1(1,3.14,temp,::std::string("hello"));
     Function f2(&foo_2);
+    ::std::cout<<f2.type().name()<<"\n";
     f2(1,3.14,temp,::std::string("hello"));
     Function f3(&foo_3);
+    ::std::cout<<f3.type().name()<<"\n";
     int ret_3=f3();
     Function f4(&foo_4);
+    ::std::cout<<f4.type().name()<<"\n";
     f4();
 }
 void test_mem_func_ctor(){
@@ -70,12 +74,16 @@ void test_mem_func_ctor(){
     char temp='A';
     Foo obj;
     Function mf1(&Foo::foo_1);
+    ::std::cout<<mf1.type().name()<<"\n";
     int ret_1=mf1(obj,1,3.14,temp,::std::string("hello"));
     Function mf2(&Foo::foo_2);
+    ::std::cout<<mf2.type().name()<<"\n";
     mf2(obj,1,3.14,temp,::std::string("hello"));
     Function mf3(&Foo::foo_3);
+    ::std::cout<<mf3.type().name()<<"\n";
     int ret_3=mf3(obj);
     Function mf4(&Foo::foo_4);
+    ::std::cout<<mf4.type().name()<<"\n";
     mf4(obj);
 }
 void test_func_assign(){
@@ -87,12 +95,16 @@ void test_func_assign(){
     Function f4(&foo_4);
     Function fn;
     fn=f1;
+    ::std::cout<<fn.type().name()<<"\n";
     int ret_1=fn(1,3.14,temp,::std::string("hello"));
     fn=f2;
+    ::std::cout<<fn.type().name()<<"\n";
     fn(1,3.14,temp,::std::string("hello"));
     fn=f3;
+    ::std::cout<<fn.type().name()<<"\n";
     int ret_3=fn();
     fn=f4;
+    ::std::cout<<fn.type().name()<<"\n";
     auto ret_4=fn();
 }
 void test_mem_func_assign(){
@@ -105,12 +117,16 @@ void test_mem_func_assign(){
     Function mf4(&Foo::foo_4);
     Function mfn;
     mfn=mf1;
+    ::std::cout<<mfn.type().name()<<"\n";
     int ret_1=mfn(obj,1,3.14,temp,::std::string("hello"));
     mfn=mf2;
+    ::std::cout<<mfn.type().name()<<"\n";
     mfn(obj,1,3.14,temp,::std::string("hello"));
     mfn=mf3;
+    ::std::cout<<mfn.type().name()<<"\n";
     int ret_3=mfn(obj);
     mfn=mf4;
+    ::std::cout<<mfn.type().name()<<"\n";
     mfn(obj);
 }
 void test_access(){

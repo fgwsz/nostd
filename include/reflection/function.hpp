@@ -49,6 +49,7 @@ class Function{
         void* from_func_ptr,
         void* from_args_ptr
     );
+    Type type_;
     template<typename _FuncType,size_t _argc,size_t...index>
     inline static decltype(auto) invoke_impl(
         _FuncType&& func,
@@ -74,25 +75,25 @@ class Function{
     inline static Object invoker_11(void* func_ptr,void* args_ptr){
         auto& func=*static_cast<_Func*>(func_ptr);
         auto& args=*static_cast<_Args*>(args_ptr);
-        return make_object(Function::invoke(func,args));
+        return ::make_object(Function::invoke(func,args));
     }
     template<typename _Func,typename _Args>
     inline static Object invoker_10(void* func_ptr,void* args_ptr){
         auto& func=*static_cast<_Func*>(func_ptr);
         auto& args=*static_cast<_Args*>(args_ptr);
         Function::invoke(func,args);
-        return make_object();
+        return {};
     }
     template<typename _Func,typename _Args>
     inline static Object invoker_01(void* func_ptr,void* args_ptr){
         auto& func=*static_cast<_Func*>(func_ptr);
-        return make_object(func());
+        return ::make_object(func());
     }
     template<typename _Func,typename _Args>
     inline static Object invoker_00(void* func_ptr,void* args_ptr){
         auto& func=*static_cast<_Func*>(func_ptr);
         func();
-        return make_object();
+        return {};
     }
     template<typename _Func,typename _Args>
     inline static void destory(void*& func_ptr,void*& args_ptr){
@@ -131,6 +132,7 @@ public:
         ,invoker_(nullptr)
         ,destory_(nullptr)
         ,copy_(nullptr)
+        ,type_(::make_type<void(*)(void)>())
     {}
     template<typename _FuncType,::std::enable_if_t<
         !::std::is_same_v<::std::remove_cvref_t<_FuncType>,Function>&& // 优先匹配拷贝构造
@@ -168,6 +170,9 @@ public:
         this->args_count_=args_count;
         this->destory_=this->destory<func_t,args_t>;
         this->copy_=this->copy<func_t,args_t>;
+        this->type_=::make_type<
+            typename ::nostd::FunctionTraits<_FuncType>::function_base_type*
+        >();
     }
     template<typename _MemFuncType,::std::enable_if_t<
         !::std::is_same_v<::std::remove_cvref_t<_MemFuncType>,Function>&& // 优先匹配拷贝构造
@@ -183,18 +188,36 @@ public:
             >(::std::mem_fn(::std::forward<_MemFuncType>(_member_function)))
         )
     {}
-    inline ~Function()noexcept{
-        if(this->destory_){
+    inline bool empty()const noexcept{
+        return this->func_ptr_==nullptr;
+    }
+    inline void reset()noexcept{
+        if(!this->empty()){
             this->destory_(this->func_ptr_,this->args_ptr_);
+            this->args_count_=0;
+            this->invoker_=nullptr;
+            this->destory_=nullptr;
+            this->copy_=nullptr;
+            this->type_=::make_type<void(*)(void)>();
         }
+    }
+    inline ~Function()noexcept{
+        this->reset();
     }
     inline Object invoke_by_objects()const{
+        if(this->empty()){
+            return {};
+        }
         if(0!=this->args_count_){
             throw ::std::runtime_error("Function::operator() Error:Args Count Not Equal");
+        }else{
+            return this->invoker_(this->func_ptr_,this->args_ptr_);
         }
-        return this->invoker_(this->func_ptr_,this->args_ptr_);
     }
     inline Object invoke_by_objects(::std::vector<Object>const& objects)const{
+        if(this->empty()){
+            return {};
+        }
         if(objects.size()!=this->args_count_){
             throw ::std::runtime_error("Function::operator() Error:Args Count Not Equal");
         }else if(this->args_count_!=0){
@@ -217,9 +240,6 @@ public:
     inline Object invoke_by_args(_ArgTypes&&...args)const{
         return (*this)(::std::forward<_ArgTypes>(args)...);
     }
-    inline bool empty()const noexcept{
-        return this->func_ptr_;
-    }
     inline explicit operator bool()const noexcept{
         return this->empty();
     }
@@ -229,18 +249,26 @@ public:
     }
     inline Function& operator=(Function const& func)noexcept{
         if(this!=&func){
-            func.copy_(
-                this->func_ptr_,
-                this->args_ptr_,
-                this->destory_,
-                func.func_ptr_,
-                func.args_ptr_
-            );
-            this->args_count_=func.args_count_;
-            this->invoker_=func.invoker_;
-            this->destory_=func.destory_;
-            this->copy_=func.copy_;
+            if(!func.empty()){
+                func.copy_(
+                    this->func_ptr_,
+                    this->args_ptr_,
+                    this->destory_,
+                    func.func_ptr_,
+                    func.args_ptr_
+                );
+                this->args_count_=func.args_count_;
+                this->invoker_=func.invoker_;
+                this->destory_=func.destory_;
+                this->copy_=func.copy_;
+                this->type_=func.type_;
+            }else{
+                this->reset();
+            }
         }
         return *this;
+    }
+    inline Type const& type()const noexcept{
+        return this->type_;
     }
 };
