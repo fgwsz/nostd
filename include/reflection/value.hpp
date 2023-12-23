@@ -52,7 +52,9 @@ public:
         ,is_small_(true)
         ,is_empty_(true)
     {}
-    template<typename _Type>
+    template<typename _Type,::std::enable_if_t<
+        !::std::is_same_v<::std::remove_cvref_t<_Type>,Value>
+    ,int>_=0>
     inline explicit Value(_Type value)noexcept
         :Value(){
         using value_type=::std::decay_t<_Type>;

@@ -38,7 +38,7 @@ static constexpr auto is_member_function_pointer_v=
     ::std::is_member_function_pointer_v<::std::remove_cvref_t<_Type>>;
 template<typename _Type>
 static constexpr auto is_functor_v=requires{
-    ::std::remove_cvref_t<_Type>::operator();
+    {&::std::remove_cvref_t<_Type>::operator()};
 };
 template<typename _Type>
 static constexpr auto is_function_v=
