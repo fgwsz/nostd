@@ -82,3 +82,16 @@ void test_api(){
     my_field.set_value(my_object, {}); // 设置属性值
 }
 } // namespace reflection end
+// 一个非常实际的问题：就是如何存储元信息呢？
+// 元信息怎么组织，又使用什么数据结构来存储，什么数据结构来优化查询效率。
+// 首先就是一个类，要有类型
+// 通过类型到类元信息的单向映射，可以得到类元信息的内容。
+// map<Type,ClassMetaInfo> 存储Type->ClassMetaInfo的映射关系
+// 其次我们要关注一下ClassMetaInfo包含哪些内容？
+// 最简单最直接的就是类成员变量/函数。
+// 其中类成员变量可能需要记录一下类型信息和类成员变量偏移地址。
+// FieldMetaInof{Type type_;size_t offset_;};
+// 接下来就是类成员函数需要记录的元信息。
+// MethodMetaInfo{Type return_type_;Type[] parameter_list_;size_t offset_;}
+// 接下俩就是构造函数需要记录的元信息。
+// ConstructorMetaInfo{Type[] parameter_list_;size_t}
