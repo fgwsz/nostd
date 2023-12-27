@@ -201,7 +201,7 @@ public:
             this->type_=::make_type<void(*)(void)>();
         }
     }
-    inline ~Function()noexcept{
+    inline virtual ~Function()noexcept{
         this->reset();
     }
     inline Object invoke_by_objects()const{

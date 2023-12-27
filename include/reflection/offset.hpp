@@ -1,34 +1,34 @@
 #pragma once
 #include<cstddef>
-template<typename _ClassType,typename _MemberType>
-ptrdiff_t _get_member_offset(
+template<typename _ClassType,typename _FieldType>
+ptrdiff_t _get_field_offset(
     _ClassType& object,
-    _MemberType _ClassType::* member_pointer
+    _FieldType _ClassType::* field_ptr
 ){
-    return reinterpret_cast<char*>(&(object.*member_pointer))
+    return reinterpret_cast<char*>(&(object.*field_ptr))
         -reinterpret_cast<char*>(&object);
 }
-template<typename _ClassType,typename _MemberType>
-ptrdiff_t _get_member_offset_by_nullptr(_MemberType _ClassType::* member_pointer){
-    return ::_get_member_offset(
+template<typename _ClassType,typename _FieldType>
+ptrdiff_t _get_field_offset_by_nullptr(_FieldType _ClassType::* field_ptr){
+    return ::_get_field_offset(
         *reinterpret_cast<_ClassType*>(nullptr),
-        member_pointer
+        field_ptr
     );
 }
-void* _get_member_ptr(
+void* _get_field_ptr(
     void* object_ptr,
-    ptrdiff_t member_offset
+    ptrdiff_t field_offset
 ){
     return reinterpret_cast<void*>(
-        reinterpret_cast<char*>(object_ptr)+member_offset
+        reinterpret_cast<char*>(object_ptr)+field_offset
     );
 }
-template<typename _MemberType,typename _ClassType>
-_MemberType& _get_member_ref(
+template<typename _FieldType,typename _ClassType>
+_FieldType& _get_field_ref(
     _ClassType& object,
-    ptrdiff_t member_offset
+    ptrdiff_t field_offset
 ){
-    return *reinterpret_cast<_MemberType*>(
-        ::_get_member_ptr(reinterpret_cast<void*>(&object),member_offset);
+    return *reinterpret_cast<_FieldType*>(
+        ::_get_field_ptr(reinterpret_cast<void*>(&object),field_offset);
     );
 }

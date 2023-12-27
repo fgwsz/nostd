@@ -1,4 +1,5 @@
 #pragma once
+#include<memory>
 #include<stdexcept>
 #include<type_traits>
 template<typename _Type>
@@ -9,7 +10,7 @@ public:
         this->data_=nullptr;
     }
     inline explicit constexpr Reference(_Type& lval_ref)noexcept{
-        this->data_=&lval_ref;
+        this->data_=::std::addressof(lval_ref);
     }
     inline constexpr bool empty()const noexcept{
         return this->data_==nullptr;
