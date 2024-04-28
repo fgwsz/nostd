@@ -6,7 +6,6 @@
 #include<stdexcept>//::std::runtime_error
 #include<cstddef>//::std::size_t
 #include<functional>//::std::function
-#include<vector>//::std::vector
 
 template<typename _KeyType,typename _ValueType>
 requires
@@ -18,11 +17,11 @@ class OrderedMap final{
         _ValueType value_;
     };
     using pair_t=Pair;
-    using list_iterator=typename ::std::list<pair_t>::const_iterator;
+    using list_iterator=typename ::std::list<pair_t>::iterator;
     ::std::unordered_map<_KeyType,list_iterator> map_;
     ::std::list<pair_t> list_;
 public:
-    constexpr OrderedMap()noexcept
+    constexpr OrderedMap(void)noexcept
         :map_({})
         ,list_({})
     {}
@@ -39,9 +38,9 @@ public:
             return *this;
         }
         this->clear();
-        rhs->for_each(
+        rhs->foreach(
             [this](_KeyType const& key,_ValueType const& value){
-                this->add_key(key,value);
+                this->insert(key,value);
             }
         );
         return *this;
@@ -59,16 +58,16 @@ public:
         this->map_.swap(rhs.map_);
         return *this;
     }
-    constexpr bool has_key(_KeyType const& key)const noexcept{
+    constexpr bool contains(_KeyType const& key)const noexcept{
         return this->map_.count(key)!=0;
     }
-    constexpr OrderedMap& add_key(
+    constexpr OrderedMap& insert(
         _KeyType const& key,
         _ValueType const& value
     ){
-        if(this->has_key(key)){
+        if(this->contains(key)){
             throw ::std::runtime_error(
-                "OrderedMap::add_key():"
+                "OrderedMap::insert():"
                 "This key already exists."
             );
         }
@@ -78,10 +77,10 @@ public:
         );
         return *this;
     }
-    constexpr OrderedMap& delete_key(_KeyType const& key){
-        if(!this->has_key(key)){
+    constexpr OrderedMap& erase(_KeyType const& key){
+        if(!this->contains(key)){
             throw ::std::runtime_error(
-                "OrderedMap::delete_key():"
+                "OrderedMap::erase():"
                 "Can't find this key."
             );
         }
@@ -89,24 +88,51 @@ public:
         this->map_.erase(key);
         return *this;
     }
-    constexpr OrderedMap& clear(){
+    constexpr OrderedMap& clear(void)noexcept{
         this->list_.clear();
         this->map_.clear();
         return *this;
     }
-    constexpr _ValueType const& value_of(_KeyType const& key)const{
-        if(!this->has_key(key)){
+    constexpr _ValueType const& get(_KeyType const& key)const{
+        if(!this->contains(key)){
             throw ::std::runtime_error(
-                "OrderedMap::value_of():"
+                "OrderedMap::get():"
                 "Can't find this key."
             );
         }
-        return *(this->map_[key]);
+        return this->map_[key]->value_;
     }
-    constexpr ::std::size_t size()const noexcept{
+    constexpr OrderedMap& update(
+        _KeyType const& key,
+        _ValueType const& value
+    ){
+        if(!this->contains(key)){
+            throw ::std::runtime_error(
+                "OrderedMap::update():"
+                "Can't find this key."
+            );
+        }
+        this->map_[key]->value_=value;
+        return *this;
+    }
+    constexpr OrderedMap& set(
+        _KeyType const& key,
+        _ValueType const& value
+    )noexcept{
+        if(!this->contains(key)){
+            this->insert(key,value);
+        }else{
+            this->update(key,value);
+        }
+        return *this;
+    }
+    constexpr ::std::size_t size(void)const noexcept{
         return this->map_.size();
     }
-    constexpr OrderedMap& for_each(
+    constexpr bool empty(void)const noexcept{
+        return this->size()==0;
+    }
+    constexpr OrderedMap& foreach(
         ::std::function<void(_KeyType const&,_ValueType&)>const& func
     )noexcept{
         for(auto& pair:this->list_){
@@ -114,25 +140,12 @@ public:
         }
         return *this;
     }
-    constexpr OrderedMap const& for_each(
+    constexpr OrderedMap const& foreach(
         ::std::function<void(_KeyType const&,_ValueType const&)>const& func
     )const noexcept{
         for(auto const& pair:this->list_){
             func(pair.key_,pair.value_);
         }
         return *this;
-    }
-    constexpr ::std::vector<_KeyType> keys_of(
-        _ValueType const& value
-    )const noexcept{
-        ::std::vector<_KeyType> ret={};
-        this->for_each(
-            [&value,&ret](_KeyType const& _key,_ValueType const& _value){
-                if(value==_value){
-                    ret->push_back(_key);
-                }
-            }
-        );
-        return ret;
     }
 };

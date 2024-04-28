@@ -10,7 +10,7 @@ _OutputStreamType& operator<<(
     os<<"OrderedMap<"
         <<::nostd::type_name<_KeyType>()<<","
         <<::nostd::type_name<_ValueType>()<<">\n";
-    map.for_each(
+    map.foreach(
         [&os](_KeyType const& key,_ValueType const& value){
             os<<"\t<"<<key<<":"<<value<<">\n";
         }
@@ -19,8 +19,9 @@ _OutputStreamType& operator<<(
 }
 int main(void){
     OrderedMap<::std::string,int> map;
-    map.add_key("age",100)
-        .add_key("name",666);
+    map
+        .set("age",100)
+        .set("name",666);
     ::std::cout<<map;
     return 0;
 }
